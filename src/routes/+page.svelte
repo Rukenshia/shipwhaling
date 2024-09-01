@@ -183,8 +183,10 @@
             <thead>
               <tr class="text-gray-400 text-lg uppercase">
                 <th class="pl-2">Ship</th>
-                <th class="hidden sm:block">Base XP Requirement</th>
-                <th class="block sm:hidden">BXP</th>
+                <th>
+                  <span class="hidden sm:inline">Base XP Requirement</span>
+                  <span class="sm:hidden">BXP</span>
+                </th>
                 <th class="text-right">Reward</th>
               </tr>
             </thead>
