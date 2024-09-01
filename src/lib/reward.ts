@@ -21,7 +21,9 @@ export function isTestShip(ship: Ship): boolean {
     'Shinano',
     'Archerfish',
     'Svea',
-    'Georg Hoffmann'
+    'Georg Hoffmann',
+    'Iowa 2',
+    'Volunteer State'
   ].includes(ship.name);
 }
 

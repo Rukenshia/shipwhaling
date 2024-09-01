@@ -7,8 +7,8 @@
 <div
   class="bg-slate-950/50 backdrop-blur-sm rounded px-8 py-4 flex items-center text-center justify-around"
 >
-  <div class="leading-10 pb-4">
-    <h1 class={`text-6xl text-white font-bold drop-shadow-2xl uppercase`}>
+  <div class="flex flex-col space-between">
+    <h1 class={`block text-6xl text-white font-bold drop-shadow-2xl uppercase`}>
       <div class="flex items-center gap-2 justify-center">
         {value}
         {#if icon}
@@ -17,14 +17,19 @@
       </div>
     </h1>
 
-    <h2 class={`text-cyan-50/80 drop-shadow-2xl leading-none flex-col gap-0`}>
-      <div class="text-sm sm:text-base lg:text-lg leading-none">
+    <h2 class={`block flex-grow text-cyan-50/80 drop-shadow-2xl flex flex-col items-center`}>
+      <div class="text-sm sm:text-base lg:text-lg leading-4">
         {title}
       </div>
 
-      <div class="text-xs leading-6 :leading-none">
-        <slot />
-      </div>
+      <!-- if slot used -->
+      {#if $$slots.default}
+        <div class="text-xs leading-6 leading-1 h-6">
+          <slot>
+            <!-- Default content when slot is not used -->
+          </slot>
+        </div>
+      {/if}
     </h2>
   </div>
 </div>

@@ -95,27 +95,36 @@
       );
   });
 
-  const totalRewards: Readable<Promise<Reward & { ship: Ship }>> = derived(
-    rewards,
-    async ($rewards) => {
-      const res = (await $rewards).reduce(
-        (acc: Reward & { ship: Ship }, reward: Reward & { ship: Ship }) => {
-          return {
-            festiveTokens: acc.festiveTokens + reward.festiveTokens,
-            steel: acc.steel + reward.steel,
-            baseXPRequired: acc.baseXPRequired + reward.baseXPRequired
-          };
-        },
-        {
-          festiveTokens: 0,
-          steel: 0,
-          baseXPRequired: 0
-        }
-      );
+  interface TotalRewards {
+    festiveTokens: number;
+    steel: number;
+    baseXPRequired: number;
+    festiveTokenShips: number;
+    steelShips: number;
+  }
+  const totalRewards: Readable<Promise<TotalRewards>> = derived(rewards, async ($rewards) => {
+    const res = (await $rewards).reduce(
+      (acc: TotalRewards, reward: Reward & { ship: Ship }) => {
+        return {
+          festiveTokens: acc.festiveTokens + reward.festiveTokens,
+          steel: acc.steel + reward.steel,
+          baseXPRequired: acc.baseXPRequired + reward.baseXPRequired,
 
-      return res;
-    }
-  );
+          festiveTokenShips: acc.festiveTokenShips + (reward.festiveTokens > 0 ? 1 : 0),
+          steelShips: acc.steelShips + (reward.steel > 0 ? 1 : 0)
+        };
+      },
+      {
+        festiveTokens: 0,
+        steel: 0,
+        baseXPRequired: 0,
+        festiveTokenShips: 0,
+        steelShips: 0
+      }
+    );
+
+    return res;
+  });
 
   const maxAdditionalRewards = derived(shipsInPort, async ($shipsInPort) => {
     const ships = await $shipsInPort;
@@ -149,10 +158,14 @@
         <RewardStat title="Base XP Required" icon={baseXp} value={0} />
         <RewardStat title="Performance Bonus" value={0} />
       {:then rewards}
-        <RewardStat title="Festive Tokens" value={rewards.festiveTokens} icon={festiveToken} />
-        <RewardStat title="Steel" value={rewards.steel} icon={steel} />
+        <RewardStat title="Festive Tokens" value={rewards.festiveTokens} icon={festiveToken}>
+          from {rewards.festiveTokenShips} ships
+        </RewardStat>
+        <RewardStat title="Steel" value={rewards.steel} icon={steel}>
+          from {rewards.steelShips} ships
+        </RewardStat>
         <RewardStat title="Base XP Required" value={rewards.baseXPRequired} icon={baseXp}>
-          <span class="hidden sm:inline">Worst case scenario</span>
+          Worst case scenario
         </RewardStat>
         {#await $maxAdditionalRewards}
           <RewardStat title="Additional Rewards" value={0} />
