@@ -57,13 +57,9 @@
   }
 
   const shipsInPort = derived(user, async ($user) => {
-    console.log('fetching ships in port');
-    console.log($user);
-
     if (!$user) {
       return [];
     }
-    console.log('user is', $user);
 
     const ships = await $user.getShipsInPort();
 
