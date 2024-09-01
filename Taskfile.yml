@@ -1,0 +1,11 @@
+version: '3'
+
+tasks:
+  build:
+    cmds:
+      - npm run build
+
+  deploy:
+    cmds:
+      - aws s3 sync --delete build/ s3://whaling.in.fkn.space
+      - aws cloudfront create-invalidation --distribution-id E70E85S3UWCMA --paths "/*"
