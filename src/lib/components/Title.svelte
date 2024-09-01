@@ -4,11 +4,11 @@
 </script>
 
 <div class="leading-10 pb-4">
-  <h1 class={`${align} ${size} text-white font-bold drop-shadow-2xl uppercase`}>
+  <div class={`header ${align} ${size} text-white font-bold drop-shadow-2xl uppercase`}>
     <slot></slot>
-  </h1>
+  </div>
 
-  <h2 class={`${align} text-base sm:text-sm lg:text-lg text-cyan-50/80 drop-shadow-2xl`}>
+  <div class={`header ${align} text-base sm:text-sm lg:text-lg text-cyan-50/80 drop-shadow-2xl`}>
     <slot name="subtitle"></slot>
-  </h2>
+  </div>
 </div>

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { login, user } from '$lib/store';
+  import { Realm, login, user } from '$lib/store';
   import { onMount } from 'svelte';
   import { derived, type Readable } from 'svelte/store';
   import {
@@ -131,26 +131,54 @@
 
     return getMaxAdditionalRewards(ships.filter((ship: Ship) => !isTestShip(ship)).length);
   });
+
+  const realmColors = {
+    [Realm.EU]: 'text-cyan-300',
+    [Realm.NA]: 'text-rose-400',
+    [Realm.ASIA]: 'text-amber-300'
+  };
 </script>
 
 <div class="space-y-12">
-  <div>
-    <Title size="text-4xl sm:text-6xl" align="left">
-      <div class="flex gap-4 items-center">
-        <div>Rewards</div>
-        <div>
-          <a
-            href="https://blog.worldofwarships.com/blog/552"
-            target="_blank"
-            class="block bg-white/20 hover:bg-white/30 transition-colors duration-200 backdrop-blur border-white/40 border-2 px-4 py-1 sm:py-2 text-white text-base sm:text-lg"
-          >
-            Rules
-          </a>
+  <div class="space-y-4">
+    <div
+      class="flex gap-4 md:gap-0 md:flex-row flex-col-reverse md:items-center justify-between pr-1"
+    >
+      <Title size="text-4xl sm:text-6xl" align="left">
+        <div class="flex gap-4 items-center">
+          <div>Rewards</div>
+          <div>
+            <a
+              href="https://blog.worldofwarships.com/blog/552"
+              target="_blank"
+              class="block bg-white/20 hover:bg-white/30 transition-colors duration-200 backdrop-blur border-white/40 border-2 px-4 py-1 sm:py-2 text-white text-base sm:text-lg"
+            >
+              Rules
+            </a>
+          </div>
         </div>
-      </div>
 
-      <div slot="subtitle">The number of resources you can earn based on your ships in port.</div>
-    </Title>
+        <div slot="subtitle">The number of resources you can earn based on your ships in port.</div>
+      </Title>
+      <div
+        class="w-full sm:w-auto bg-white/10 backdrop-blur p-2 text-white text-sm flex flex-col header items-center justify-center"
+      >
+        <div class="text-sm uppercase">
+          Logged in as
+          {#if $user}
+            <span class={realmColors[$user.realm]}>{$user.username}</span>
+          {:else}
+            Unknown
+          {/if}
+        </div>
+        <button
+          class="mt-4 w-full h-full bg-rose-500/20 hover:bg-rose-500/40 transition-colors duration-200 px-2 py-2 border-2 border-rose-600/50 backdrop-blur text-rose-500 text-sm uppercase tracking-wider font-semibold"
+          on:click={() => logout()}
+        >
+          <h5>Log out</h5>
+        </button>
+      </div>
+    </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
       {#await $totalRewards}
         <RewardStat title="Festive Tokens" icon={festiveToken} value={0} />
@@ -245,13 +273,6 @@
     {/await}
   </div>
 
-  <button
-    class="mt-4 w-full h-full bg-rose-500/20 hover:bg-rose-500/40 transition-colors duration-200 px-8 py-4 border-2 border-rose-600/50 backdrop-blur text-rose-500 text-lg uppercase tracking-wider font-semibold"
-    on:click={() => logout()}
-  >
-    <h5>Log out</h5>
-  </button>
-
   <div class="space-y-8">
     <div>
       <Title size="text-4xl sm:text-6xl" align="left">About</Title>
@@ -311,7 +332,7 @@
             backdrop-blur px-8 py-4 text-purple-50 flex gap-8 items-center"
           >
             <svg
-              class="h-16 w-16"
+              class="h-16 w-16 flex-shrink-0"
               xmlns="http://www.w3.org/2000/svg"
               xml:space="preserve"
               id="Layer_1"
