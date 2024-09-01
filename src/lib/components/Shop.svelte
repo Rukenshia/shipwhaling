@@ -165,7 +165,7 @@
         <p class="text-2xl font-bold">{totalCost} tokens</p>
       </div>
       <div class="text-right">
-        <h4 class="text-lg text-gray-400 font-semibold uppercase mb-1">Remaining Tokens</h4>
+        <h4 class="text-lg text-gray-400 font-semibold uppercase mb-1">Remaining</h4>
         <p class="text-2xl font-bold {remainingTokensClass}">
           {remainingTokens} tokens
           {#if remainingTokens < 0}
