@@ -142,13 +142,13 @@
         <RewardStat title="Festive Tokens" value={rewards.festiveTokens} />
         <RewardStat title="Steel" value={rewards.steel} />
         <RewardStat title="Base XP Required" value={rewards.baseXPRequired}>
-          <div class="text-xs hidden sm:block">Worst case scenario</div>
+          Worst case scenario
         </RewardStat>
         {#await $maxAdditionalRewards}
           <RewardStat title="Additional Rewards" value={0} />
         {:then maxAdditionalRewards}
           <RewardStat title="Additional Rewards" value={maxAdditionalRewards}>
-            <div class="text-xs hidden sm:block">Per battle over 1,000 Base XP</div>
+            Per battle over 1,000 Base XP
           </RewardStat>
         {:catch}
           <RewardStat title="Additional Rewards" value={0} />
