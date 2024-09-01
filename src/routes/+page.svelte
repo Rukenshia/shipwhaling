@@ -262,6 +262,14 @@
               <span class="font-medium">Buy me a coffee</span>
             </a>
           </div>
+
+          <p>
+            An extra shoutout to the calculator posted on <a
+              href="https://www.reddit.com/r/WorldOfWarships/comments/1eva24m/2024_festive_rewards_calculator/"
+              target="_blank"
+              class="text-cyan-100 underline">Reddit by /u/adosztal</a
+            > which I used to understand the event better.
+          </p>
         </div>
 
         <div class="pt-4">
