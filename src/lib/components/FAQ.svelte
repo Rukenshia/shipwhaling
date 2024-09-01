@@ -20,6 +20,13 @@
     </dd>
   </div>
   <div>
+    <dt class="text-cyan-200 font-semibold">How can I track my progress?</dt>
+    <dd>
+      Unlike previous versions, tracking your progress is not possible. The Additional Rewards for
+      achieving more than 1,000 Base XP make it a little bit too complicated to track.
+    </dd>
+  </div>
+  <div>
     <dt class="text-cyan-200 font-semibold">I found a bug, have a problem or want to thank you</dt>
     <dd>
       You can contact me on Discord at <strong>Rukenshia#4396</strong> or email me at

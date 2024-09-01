@@ -57,7 +57,7 @@
 </script>
 
 <div class="space-y-8">
-  <div class="bg-slate-950/50 rounded p-8">
+  <div class="bg-slate-950/50 backdrop-blur-sm rounded p-8">
     <div class="mb-6 flex flex-col space-y-3 text-cyan-100">
       <label class="flex items-center space-x-3 cursor-pointer">
         <div class="relative">
@@ -110,7 +110,7 @@
             {/if}
           </div>
         </div>
-        <span class="text-sm font-medium">Include Anniversary Rewards (+1,000)</span>
+        <span class="text-sm font-medium">Include Tokens from Daily Rewards (+1,000)</span>
       </label>
     </div>
 

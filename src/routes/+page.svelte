@@ -12,6 +12,8 @@
   import type { Ship } from '$lib/ship';
   import Shop from '$lib/components/Shop.svelte';
 
+  import bmcLogo from '$lib/assets/bmc-logo.svg';
+
   onMount(() => {
     // try to init user from local storage
 
@@ -109,12 +111,23 @@
 
 <div class="space-y-12">
   <div>
-    <Title size="text-7xl" align="left">
-      Rewards
+    <Title size="text-4xl sm:text-6xl" align="left">
+      <div class="flex gap-4 items-center">
+        <div>Rewards</div>
+        <div>
+          <a
+            href="https://blog.worldofwarships.com/blog/552"
+            target="_blank"
+            class="block bg-white/20 hover:bg-white/30 transition-colors duration-200 backdrop-blur border-white/40 border-2 px-4 py-1 sm:py-2 text-white text-base sm:text-lg"
+          >
+            Rules
+          </a>
+        </div>
+      </div>
 
       <div slot="subtitle">The number of resources you can earn based on your ships in port.</div>
     </Title>
-    <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
       {#await $totalRewards}
         <RewardStat title="Festive Tokens" value={0} />
         <RewardStat title="Steel" value={0} />
@@ -123,11 +136,15 @@
       {:then rewards}
         <RewardStat title="Festive Tokens" value={rewards.festiveTokens} />
         <RewardStat title="Steel" value={rewards.steel} />
-        <RewardStat title="Base XP Required (worst case)" value={rewards.baseXPRequired} />
+        <RewardStat title="Base XP Required" value={rewards.baseXPRequired}>
+          <div class="text-xs hidden sm:block">Worst case scenario</div>
+        </RewardStat>
         {#await $maxAdditionalRewards}
           <RewardStat title="Additional Rewards" value={0} />
         {:then maxAdditionalRewards}
-          <RewardStat title="Additional Rewards" value={maxAdditionalRewards} />
+          <RewardStat title="Additional Rewards" value={maxAdditionalRewards}>
+            <div class="text-xs hidden sm:block">Per battle over 1,000 Base XP</div>
+          </RewardStat>
         {:catch}
           <RewardStat title="Additional Rewards" value={0} />
         {/await}
@@ -137,7 +154,7 @@
     </div>
   </div>
   <div>
-    <Title size="text-6xl" align="left"
+    <Title size="text-4xl sm:text-6xl" align="left"
       >Shop
 
       <div slot="subtitle">Get an approximation of how you can spend your tokens.</div>
@@ -151,19 +168,19 @@
     {/await}
   </div>
   <div>
-    <Title size="text-6xl" align="left">Breakdown</Title>
+    <Title size="text-4xl sm:text-6xl" align="left">Breakdown</Title>
     {#await $rewards}
       Loading
     {:then rewards}
-      <div class="bg-slate-950/50 rounded p-8">
-        <div class="overflow-y-auto max-h-[30vh]">
+      <div class="bg-slate-950/50 backdrop-blur-sm rounded p-2 sm:p-8">
+        <div class="w-full overflow-y-auto max-h-[30vh]">
           <table class="w-full text-left">
             <thead>
               <tr class="text-gray-400 text-lg uppercase">
                 <th class="pl-2">Ship</th>
-                <th>Base XP Requirement</th>
-                <th>Reward</th>
-                <th>Amount</th>
+                <th class="hidden sm:block">Base XP Requirement</th>
+                <th class="block sm:hidden">BXP</th>
+                <th class="text-right">Reward</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-cyan-800 rounded text-cyan-100">
@@ -171,22 +188,20 @@
                 <tr class="odd:bg-cyan-950/40">
                   <td class="pl-2">{reward.ship.name}</td>
                   <td>{reward.baseXPRequired}</td>
-                  <td>
-                    {#if reward.festiveTokens > 0}
-                      Festive Tokens
-                    {:else if reward.steel > 0}
-                      Steel
-                    {:else}
-                      None
-                    {/if}
-                  </td>
-                  <td>
+                  <td class="text-right">
                     {#if reward.festiveTokens > 0}
                       {reward.festiveTokens}
                     {:else if reward.steel > 0}
                       {reward.steel}
                     {:else}
                       0
+                    {/if}
+                    {#if reward.festiveTokens > 0}
+                      Festive Tokens
+                    {:else if reward.steel > 0}
+                      Steel
+                    {:else}
+                      None
                     {/if}
                   </td>
                 </tr>
@@ -200,31 +215,90 @@
     {/await}
   </div>
 
-  <div>
-    <Title size="text-6xl" align="left">About</Title>
+  <div class="space-y-8">
+    <div>
+      <Title size="text-4xl sm:text-6xl" align="left">About</Title>
+      <div class="bg-slate-950/50 backdrop-blur-sm rounded-lg p-8 space-y-6 text-cyan-100">
+        <p class="leading-relaxed">
+          On this website, you can plan your Anniversary Event rewards and purchases. It uses the
+          ships you currently have in your port to calculate available rewards.
+        </p>
+        <div class="space-y-4">
+          <p class="leading-relaxed">
+            This tool was created by <strong class="text-cyan-300">Rukenshia</strong> on the EU
+            Server. If you have any questions, feedback, or want to thank me, you can contact me on
+            Discord at
+            <strong class="text-cyan-300">Rukenshia#4396</strong>
+            or email me at
+            <a
+              href="mailto:svc-shipwhaling@ruken.pw"
+              class="text-cyan-300 hover:text-cyan-100 underline transition-colors duration-200"
+            >
+              svc-shipwhaling@ruken.pw
+            </a>.
+          </p>
+          <div class="flex items-center space-x-4">
+            <span class="text-cyan-200">If you really loved using this website, you can also</span>
+            <a
+              href="https://buymeacoffee.com/rukenshia"
+              target="_blank"
+              class="inline-flex items-center text-sm px-4 py-1 bg-cyan-600 hover:bg-cyan-500 rounded-lg text-cyan-100 transition-colors duration-200 shadow-md hover:shadow-lg"
+            >
+              <img src={bmcLogo} alt="Buy me a coffee" class="w-5 h-5 mr-2" />
+              <span class="font-medium">Buy me a coffee</span>
+            </a>
+          </div>
+        </div>
+        <div class="pt-4">
+          <Title size="text-4xl" align="left">FAQ</Title>
+          <Faq />
+        </div>
 
-    <div class="bg-slate-950/50 rounded p-8">
-      <p>
-        On this website, you can plan your Anniversary Event rewards and purchases. It uses the
-        ships you currently have in your port to calculate available rewards.
-      </p>
+        <div class="pt-4">
+          <Title size="text-4xl" align="left">Shameless Advertisement</Title>
 
-      <p class="mb-8">
-        This tool was created by <strong>Rukenshia</strong> on the EU Server. If you have any
-        questions, feedback, or want to thank me, you can contact me on Discord at
-        <strong>Rukenshia#4396</strong>
-        or email me at
-        <a href="mailto:svc-shipwhaling@ruken.pw" class="text-cyan-100 underline"
-          >svc-shipwhaling@ruken.pw</a
-        >. If you really loved using this website, you can also
-        <a href="https://buymeacoffee.com/rukenshia" class="text-cyan-100 underline"
-          >Buy me a coffee</a
-        >.
-      </p>
-
-      <Title size="text-4xl" align="left">FAQ</Title>
-
-      <Faq />
+          <div
+            class="bg-purple-500/30 backdrop-blur px-8 py-4 text-purple-50 flex gap-8 items-center"
+          >
+            <svg
+              class="h-16 w-16"
+              xmlns="http://www.w3.org/2000/svg"
+              xml:space="preserve"
+              id="Layer_1"
+              x="0"
+              y="0"
+              style="enable-background:new 0 0 2400 2800"
+              version="1.1"
+              viewBox="0 0 2400 2800"
+              ><style>
+                .st1 {
+                  fill: #9146ff;
+                }
+              </style><path
+                d="m2200 1300-400 400h-400l-350 350v-350H600V200h1600z"
+                style="fill:#fff"
+              /><g id="Layer_1-2"
+                ><path
+                  d="M500 0 0 500v1800h600v500l500-500h400l900-900V0H500zm1700 1300-400 400h-400l-350 350v-350H600V200h1600v1100z"
+                  class="st1"
+                /><path d="M1700 550h200v600h-200zM1150 550h200v600h-200z" class="st1" /></g
+              ></svg
+            >
+            <a class="block" href="https://shipvote.in.fkn.space" target="_blank">
+              <div class="space-y-2">
+                <div class="text-lg font-semibold">
+                  Want to spice up your World of Warships stream?
+                </div>
+                <div class="text-base">
+                  Check out the WoWS Shipvote extension for Twitch. Customise your votes and let
+                  your viewers decide which ship you should play next. Needs to be installed by the
+                  streamer.
+                </div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

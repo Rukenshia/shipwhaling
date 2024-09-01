@@ -6,6 +6,25 @@ export interface Reward {
   baseXPRequired: number;
 }
 
+function isTestShip(ship: Ship): boolean {
+  return [
+    'Niord',
+    'Kalmar',
+    'Yari',
+    'Lugdunum',
+    'Teng She',
+    'Ipiranga',
+    'Los Andes',
+    'Libertad',
+    'Comodoro',
+    'La Pampa',
+    'Shinano',
+    'Archerfish',
+    'Svea',
+    'Georg Hoffmann'
+  ].includes(ship.name);
+}
+
 export function calculateShipReward(ship: Ship): Reward {
   const reward: Reward = {
     festiveTokens: 0,
@@ -15,6 +34,10 @@ export function calculateShipReward(ship: Ship): Reward {
 
   if (ship.tier < 5) {
     return reward; // No rewards for ships below Tier V
+  }
+
+  if (isTestShip(ship)) {
+    return reward; // No rewards for test ships
   }
 
   // Set Base XP required
@@ -42,7 +65,7 @@ export function calculateShipReward(ship: Ship): Reward {
   }
 
   // Set Festive Tokens or Steel reward
-  if (ship.tier >= 10) {
+  if (ship.tier > 10) {
     reward.steel = 200;
   } else {
     switch (ship.tier) {
