@@ -13,6 +13,9 @@
   import Shop from '$lib/components/Shop.svelte';
 
   import bmcLogo from '$lib/assets/bmc-logo.svg';
+  import festiveToken from '$lib/assets/festive-token.png';
+  import steel from '$lib/assets/steel.svg';
+  import baseXp from '$lib/assets/base-xp.svg';
 
   onMount(() => {
     // try to init user from local storage
@@ -134,14 +137,14 @@
     </Title>
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
       {#await $totalRewards}
-        <RewardStat title="Festive Tokens" value={0} />
-        <RewardStat title="Steel" value={0} />
-        <RewardStat title="Base XP Required" value={0} />
+        <RewardStat title="Festive Tokens" icon={festiveToken} value={0} />
+        <RewardStat title="Steel" icon={steel} value={0} />
+        <RewardStat title="Base XP Required" icon={baseXp} value={0} />
         <RewardStat title="Performance Bonus" value={0} />
       {:then rewards}
-        <RewardStat title="Festive Tokens" value={rewards.festiveTokens} />
-        <RewardStat title="Steel" value={rewards.steel} />
-        <RewardStat title="Base XP Required" value={rewards.baseXPRequired}>
+        <RewardStat title="Festive Tokens" value={rewards.festiveTokens} icon={festiveToken} />
+        <RewardStat title="Steel" value={rewards.steel} icon={steel} />
+        <RewardStat title="Base XP Required" value={rewards.baseXPRequired} icon={baseXp}>
           <span class="hidden sm:inline">Worst case scenario</span>
         </RewardStat>
         {#await $maxAdditionalRewards}

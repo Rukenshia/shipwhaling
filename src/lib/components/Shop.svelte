@@ -123,11 +123,11 @@
           <th class="py-3 text-right">Quantity</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-cyan-800 rounded text-cyan-100">
+      <tbody class="divide-y divide-cyan-800 rounded text-cyan-100 text-sm sm:text-base">
         {#each items as item}
           <tr class="odd:bg-cyan-950/40">
             <td class="pl-2 py-2.5">{item.name}</td>
-            <td class="py-2.5">{item.cost} tokens</td>
+            <td class="py-2.5">{item.cost}<span class="hidden sm:inline"> tokens</span></td>
             <td class="py-2.5 hidden sm:visible">{item.limit ?? 'Unlimited'}</td>
             <td class="py-2.5 float-right">
               <div class="flex items-end space-x-2">
@@ -144,7 +144,7 @@
                   on:input={(e) => updateQuantity(item.name, parseInt(e.target.value) || 0)}
                   min="0"
                   max={item.limit || undefined}
-                  class="w-16 bg-cyan-900/50 text-cyan-100 rounded-md px-2 py-1 text-center"
+                  class="w-10 sm:w-16 bg-cyan-900/50 text-cyan-100 rounded-md px-1 sm:px-2 py-1 text-center"
                 />
                 <button
                   on:click={() => updateQuantity(item.name, cart[item.name] + 1)}
