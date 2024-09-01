@@ -270,8 +270,12 @@
         <div class="pt-4">
           <Title size="text-4xl" align="left">Shameless Advertisement</Title>
 
-          <div
-            class="bg-purple-500/30 backdrop-blur px-8 py-4 text-purple-50 flex gap-8 items-center"
+          <a
+            href="https://shipvote.in.fkn.space"
+            target="_blank"
+            class="block
+            bg-purple-500/30 hover:bg-purple-500/50 transition-colors duration-200
+            backdrop-blur px-8 py-4 text-purple-50 flex gap-8 items-center"
           >
             <svg
               class="h-16 w-16"
@@ -297,19 +301,17 @@
                 /><path d="M1700 550h200v600h-200zM1150 550h200v600h-200z" class="st1" /></g
               ></svg
             >
-            <a class="block" href="https://shipvote.in.fkn.space" target="_blank">
-              <div class="space-y-2">
-                <div class="text-lg font-semibold">
-                  Want to spice up your World of Warships stream?
-                </div>
-                <div class="text-base">
-                  Check out the WoWS Shipvote extension for Twitch. Customise your votes and let
-                  your viewers decide which ship you should play next. Needs to be installed by the
-                  streamer.
-                </div>
+            <div class="space-y-2">
+              <div class="text-lg font-semibold">
+                Want to spice up your World of Warships stream?
               </div>
-            </a>
-          </div>
+              <div class="text-base">
+                Check out the WoWS Shipvote extension for Twitch. Customise your votes and let your
+                viewers decide which ship you should play next. Needs to be installed by the
+                streamer.
+              </div>
+            </div>
+          </a>
         </div>
       </div>
     </div>
