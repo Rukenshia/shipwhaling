@@ -43,6 +43,11 @@
     };
   });
 
+  function logout() {
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+  }
+
   const shipsInPort = derived(user, async ($user) => {
     console.log('fetching ships in port');
     console.log($user);
@@ -215,6 +220,13 @@
     {/await}
   </div>
 
+  <button
+    class="mt-4 w-full h-full bg-rose-500/20 hover:bg-rose-500/40 transition-colors duration-200 px-8 py-4 border-2 border-rose-600/50 backdrop-blur text-rose-500 text-lg uppercase tracking-wider font-semibold"
+    on:click={() => logout()}
+  >
+    <h5>Log out</h5>
+  </button>
+
   <div class="space-y-8">
     <div>
       <Title size="text-4xl sm:text-6xl" align="left">About</Title>
@@ -249,6 +261,7 @@
             </a>
           </div>
         </div>
+
         <div class="pt-4">
           <Title size="text-4xl" align="left">FAQ</Title>
           <Faq />
