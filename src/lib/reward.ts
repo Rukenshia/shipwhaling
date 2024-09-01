@@ -6,7 +6,7 @@ export interface Reward {
   baseXPRequired: number;
 }
 
-function isTestShip(ship: Ship): boolean {
+export function isTestShip(ship: Ship): boolean {
   return [
     'Niord',
     'Kalmar',

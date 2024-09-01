@@ -2,7 +2,12 @@
   import { login, user } from '$lib/store';
   import { onMount } from 'svelte';
   import { derived, type Readable } from 'svelte/store';
-  import { type Reward, calculateShipReward, getMaxAdditionalRewards } from '$lib/reward';
+  import {
+    type Reward,
+    calculateShipReward,
+    getMaxAdditionalRewards,
+    isTestShip
+  } from '$lib/reward';
   import RewardStat from '$lib/components/RewardStat.svelte';
   import Faq from '$lib/components/FAQ.svelte';
 
@@ -54,6 +59,12 @@
   const shipsInPort = derived(user, async ($user) => {
     console.log('fetching ships in port');
     console.log($user);
+
+    if (!$user) {
+      return [];
+    }
+    console.log('user is', $user);
+
     const ships = await $user.getShipsInPort();
 
     return ships.map((shipId: number) => {
@@ -113,7 +124,7 @@
   const maxAdditionalRewards = derived(shipsInPort, async ($shipsInPort) => {
     const ships = await $shipsInPort;
 
-    return getMaxAdditionalRewards(ships);
+    return getMaxAdditionalRewards(ships.filter((ship: Ship) => !isTestShip(ship)).length);
   });
 </script>
 
