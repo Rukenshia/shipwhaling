@@ -48,7 +48,7 @@
 
   <footer class="bg-cyan-950/80 text-cyan-500 text-center py-4 pt-16 z-20">
     <p>
-      Made by Rukenshia (Discord: Rukenshia#4396). This website is not affiliated with Wargaming. <a
+      Made by Rukenshia (Discord: Rukenshia). This website is not affiliated with Wargaming. <a
         href="https://buymeacoffee.com/rukenshia"
         target="_blank"
         class="underline">Buy me a coffee</a

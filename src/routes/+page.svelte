@@ -242,7 +242,7 @@
             This tool was created by <strong class="text-cyan-300">Rukenshia</strong> on the EU
             Server. If you have any questions, feedback, or want to thank me, you can contact me on
             Discord at
-            <strong class="text-cyan-300">Rukenshia#4396</strong>
+            <strong class="text-cyan-300">Rukenshia</strong>
             or email me at
             <a
               href="mailto:svc-shipwhaling@ruken.pw"

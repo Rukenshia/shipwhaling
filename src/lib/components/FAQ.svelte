@@ -29,7 +29,7 @@
   <div>
     <dt class="text-cyan-200 font-semibold">I found a bug, have a problem or want to thank you</dt>
     <dd>
-      You can contact me on Discord at <strong>Rukenshia#4396</strong> or email me at
+      You can contact me on Discord at <strong>Rukenshia</strong> or email me at
       <a href="mailto:svc-shipwhaling@ruken.pw" class="text-cyan-100 underline">
         svc-shipwhaling@ruken.pw</a
       >

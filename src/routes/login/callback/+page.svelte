@@ -50,7 +50,7 @@
 {:else}
   <div class="max-w-lg mx-auto bg-rose-800/60 rounded p-8 shadow-inner inset-0">
     There was a problem while trying to log you in. Please try again. If the problem perists, please
-    contact me on Discord (Rukenshia#4396) or via <a
+    contact me on Discord (Rukenshia) or via <a
       class="text-cyan-50 underline"
       href="mailto:svc-shipwhaling@ruken.pw">email</a
     >.
