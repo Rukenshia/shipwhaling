@@ -162,12 +162,12 @@
     <div class="flex justify-between items-start bg-cyan-800/30 rounded-lg p-4 text-cyan-50">
       <div>
         <h4 class="text-lg text-gray-400 font-semibold uppercase mb-1">Total Cost</h4>
-        <p class="text-2xl font-bold">{totalCost} tokens</p>
+        <p class="text-xl sm:text-2xl font-bold">{totalCost} token{totalCost !== 1 ? 's' : ''}</p>
       </div>
       <div class="text-right">
         <h4 class="text-lg text-gray-400 font-semibold uppercase mb-1">Remaining</h4>
-        <p class="text-2xl font-bold {remainingTokensClass}">
-          {remainingTokens} tokens
+        <p class="text-xl sm:text-2xl font-bold {remainingTokensClass}">
+          {remainingTokens} token{remainingTokens !== 1 ? 's' : ''}
           {#if remainingTokens < 0}
             <span class="text-sm ml-2 normal-case">(Insufficient funds)</span>
           {/if}
