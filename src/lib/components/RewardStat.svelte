@@ -16,7 +16,7 @@
         {title}
       </div>
 
-      <div class="text-xs hidden sm:block leading-none">
+      <div class="text-xs leading-6 :leading-none">
         <slot />
       </div>
     </h2>

@@ -142,7 +142,7 @@
         <RewardStat title="Festive Tokens" value={rewards.festiveTokens} />
         <RewardStat title="Steel" value={rewards.steel} />
         <RewardStat title="Base XP Required" value={rewards.baseXPRequired}>
-          Worst case scenario
+          <span class="hidden sm:inline">Worst case scenario</span>
         </RewardStat>
         {#await $maxAdditionalRewards}
           <RewardStat title="Additional Rewards" value={0} />
