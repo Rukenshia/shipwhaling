@@ -127,7 +127,7 @@
         {#each items as item}
           <tr class="odd:bg-cyan-950/40">
             <td class="pl-2 py-2.5">{item.name}</td>
-            <td class="py-2.5">{item.cost}<span class="hidden sm:inline"> tokens</span></td>
+            <td class="py-2.5">{item.cost} <span class="hidden sm:inline">tokens</span></td>
             <td class="py-2.5 hidden sm:visible">{item.limit ?? 'Unlimited'}</td>
             <td class="py-2.5 float-right">
               <div class="flex items-end space-x-2">
