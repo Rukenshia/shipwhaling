@@ -63,9 +63,20 @@
 
     const ships = await $user.getShipsInPort();
 
-    return ships.map((shipId: number) => {
-      return warships.data.find((ship) => ship.id === shipId);
-    });
+    return ships
+      .map((shipId: number) => {
+        return (
+          warships.data.find((ship) => ship.id === shipId) || new Error(`unknown ship ${shipId}`)
+        );
+      })
+      .filter((shiporError: Ship | Error) => {
+        if (shiporError instanceof Error) {
+          console.error(shiporError);
+          return false;
+        }
+
+        return true;
+      });
   });
 
   const rewards = derived(shipsInPort, async ($shipsInPort) => {
