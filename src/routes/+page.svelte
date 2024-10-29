@@ -22,9 +22,16 @@
   import steel from '$lib/assets/steel.svg';
   import baseXp from '$lib/assets/base-xp.svg';
 
-  onMount(() => {
-    // try to init user from local storage
+  const inactive = true;
 
+  onMount(() => {
+    // page is inactive: redirect to inactive
+    if (inactive) {
+      window.location.href = '/inactive';
+      return;
+    }
+
+    // try to init user from local storage
     const storedUser = localStorage.getItem('user');
 
     if (storedUser) {

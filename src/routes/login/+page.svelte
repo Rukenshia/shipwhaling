@@ -2,6 +2,17 @@
   import Faq from '$lib/components/FAQ.svelte';
   import Title from '$lib/components/Title.svelte';
   import { Realm } from '$lib/store';
+  import { onMount } from 'svelte';
+
+  const inactive = true;
+
+  onMount(() => {
+    // page is inactive: redirect to inactive
+    if (inactive) {
+      window.location.href = '/inactive';
+      return;
+    }
+  });
 
   async function redirectToLogin(realm: 'eu' | 'com' | 'asia') {
     const expiresAt = Date.now() + 3600 * 24 * 1;
