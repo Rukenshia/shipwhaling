@@ -157,9 +157,11 @@
       </button>
     </div>
 
-    <div class="col-span-6 lg:col-span-5 flex flex-col justify-between gap-4">
-      <div class="w-full flex flex-col gap-8 xl:pl-8">
-        <div class="w-full grid grid-cols-3 gap-4 transition-all">
+    <div
+      class="col-span-6 lg:col-span-5 flex flex-col justify-between gap-4 lg:border-l pl-0 lg:pl-4"
+    >
+      <div class="w-full flex flex-col gap-8">
+        <div class="w-full grid grid-cols-2 lg:grid-cols-3 gap-4 transition-all">
           {#each container.drops as drop}
             <ContainerDrop {drop} />
           {/each}
