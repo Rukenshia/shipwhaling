@@ -1,4 +1,4 @@
-import type { Container } from '$lib/container';
+import { verifyProbabilities, type Container } from '$lib/container';
 
 export const SantasGiftContainer: Container = {
   icon: '',
@@ -238,8 +238,4 @@ export const SantasGiftContainer: Container = {
   ]
 };
 
-// ensure that the sum of all probabilities is 1
-const sum = SantasGiftContainer.drops.reduce((acc, drop) => acc + drop.probability, 0);
-if (sum !== 1) {
-  throw new Error(`The sum of all probabilities is ${sum}, but it should be 1`);
-}
+verifyProbabilities(SantasGiftContainer);

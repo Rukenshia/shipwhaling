@@ -44,9 +44,9 @@
       </div>
     </div>
     <div
-      class="grid grid-cols-1 lg:grid-cols-6 xl:grid-cols-12 gap-4 px-4 lg:px-16 text-cyan-50 mt-16"
+      class="grid grid-cols-1 lg:grid-cols-10 xl:grid-cols-12 gap-4 px-4 lg:px-16 text-cyan-50 mt-16"
     >
-      <div class="col-span-1 lg:col-start-2 lg:col-span-4 xl:col-start-2 xl:col-span-10">
+      <div class="col-span-1 lg:col-start-1 lg:col-span-9 xl:col-start-2 xl:col-span-10">
         {@render children?.()}
       </div>
     </div>

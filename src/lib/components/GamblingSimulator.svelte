@@ -8,6 +8,7 @@
   import festiveToken from '$lib/assets/festive-token.png';
   import Box from './Box.svelte';
   import { GoldenContainer } from '$lib/containers/2024-golden-container';
+  import ContainerDrop from './ContainerDrop.svelte';
 
   let container: Container = $state(SantasGiftContainer);
 
@@ -41,24 +42,27 @@
   function gamble() {
     gambling = true;
 
+    const lastDropEl = document.querySelector(`[data-drop-name="${lastDrop?.name}"]`);
+    if (lastDropEl) {
+      lastDropEl.setAttribute('data-drop-active', 'false');
+    }
+
     const targets = document.querySelectorAll('.drop');
-    let animatedEl = lastDrop
-      ? document.querySelector(`[data-drop-name="${lastDrop.name}"]`)
-      : randomElement(targets);
+    let animatedEl = lastDropEl ? lastDropEl : randomElement(targets);
     let finalAnimationStarted = false;
 
     const intv = setInterval(() => {
       anime({
         targets: animatedEl,
         backgroundColor: [
-          { value: 'rgba(255, 255, 255, 0.1)' },
-          { value: 'rgb(252,211,77, 0.5)' },
-          { value: 'rgba(255, 255, 255, 0.1)' }
+          { value: 'rgba(30,41,59, 0.3)' },
+          { value: 'rgb(52,211,153, 0.5)' },
+          { value: 'rgba(30,41,59, 0.3)' }
         ],
         outlineColor: [
-          { value: 'rgba(255, 255, 255, 0.6)' },
-          { value: 'rgb(252,211,77, 0.8)' },
-          { value: 'rgba(255, 255, 255, 0.6)' }
+          { value: 'rgba(71,85,105, 0.6)' },
+          { value: 'rgb(52,211,153, 0.8)' },
+          { value: 'rgba(71,85,105, 0.6)' }
         ],
         duration: 1000,
         easing: 'linear',
@@ -80,11 +84,14 @@
       finalAnimationStarted = true;
       anime({
         targets: finalDropEl,
-        backgroundColor: [{ value: 'rgba(255, 255, 255, 0.1)' }, { value: 'rgb(252,211,77, 0.5)' }],
-        outlineColor: [{ value: 'rgba(255, 255, 255, 0.1)' }, { value: 'rgb(252,211,77, 0.8)' }],
+        backgroundColor: [{ value: 'rgba(255, 255, 255, 0.1)' }, { value: 'rgb(52,211,153, 0.5)' }],
+        outlineColor: [{ value: 'rgba(255, 255, 255, 0.1)' }, { value: 'rgb(52,211,153, 0.8)' }],
         duration: 1500,
         easing: 'linear',
-        loop: false
+        loop: false,
+        complete: () => {
+          finalDropEl?.setAttribute('data-drop-active', 'true');
+        }
       });
     }, 4000);
 
@@ -95,41 +102,43 @@
   }
 </script>
 
-<div class="flex gap-8 flex-wrap xl:flex-nowrap xl:divide-x divide-white/20">
-  <div class="w-full xl:w-64 grid grid-cols-2 xl:grid-cols-1 gap-8">
-    <BoxSelect
-      choices={[
-        {
-          //icon: SantasGiftContainer.icon,
-          icon: festiveToken,
-          name: SantasGiftContainer.name,
-          value: SantasGiftContainer
-        },
-        {
-          icon: festiveToken,
-          name: SantasMegaGiftContainer.name,
-          value: SantasMegaGiftContainer
-        },
-        {
-          icon: festiveToken,
-          name: GoldenContainer.name,
-          value: GoldenContainer
-        }
-      ]}
-      selected={container}
-      disabled={gambling}
-      onSelected={(value: Container) => {
-        container = value;
-        lastDrop = undefined;
-      }}
-    />
-    <button
-      class={`
+<div class="flex flex-col gap-8">
+  <div class="w-full grid grid-cols-6 divide-white/20 gap-4">
+    <div class="col-span-6 lg:col-span-1 flex flex-col gap-4">
+      <div class="grid grid-cols-3 lg:grid-cols-1 gap-4">
+        <BoxSelect
+          choices={[
+            {
+              //icon: SantasGiftContainer.icon,
+              icon: festiveToken,
+              name: SantasGiftContainer.name,
+              value: SantasGiftContainer
+            },
+            {
+              icon: festiveToken,
+              name: SantasMegaGiftContainer.name,
+              value: SantasMegaGiftContainer
+            },
+            {
+              icon: festiveToken,
+              name: GoldenContainer.name,
+              value: GoldenContainer
+            }
+          ]}
+          selected={container}
+          disabled={gambling}
+          onSelected={(value: Container) => {
+            container = value;
+            lastDrop = undefined;
+          }}
+        />
+      </div>
+      <button
+        class={`
       items-center
       justify-center
       xl:justify-start
       header gambling-button
-      col-span-2 xl:col-span-1
       px-8 py-4 transition-all
       backdrop-blur
 
@@ -139,44 +148,40 @@
 
       hover:bg-emerald-600/60
       uppercase text-2xl font-medium
-      flex gap-4 items-center`}
-      disabled={gambling}
-      onclick={gamble}
-    >
-      <DiceIcon />
-      gamble
-    </button>
-  </div>
-
-  <div class="w-full flex flex-col justify-between">
-    <div class="w-full flex flex-col gap-8 xl:pl-8">
-      <div class="w-full grid grid-cols-3 gap-4 transition-all">
-        {#each container.drops as drop}
-          <div
-            data-drop-name={drop.name}
-            class="drop w-full sm:w-auto p-2 text-white text-sm flex flex-col header items-center justify-center bg-white/10 outline outline-1 outline-white/60 -outline-offset-2"
-          >
-            {drop.name}
-          </div>
-        {/each}
-      </div>
+      flex flex-col gap-4 items-center`}
+        disabled={gambling}
+        onclick={gamble}
+      >
+        <DiceIcon />
+        <div>gamble</div>
+      </button>
     </div>
-    <div class="pl-8">
-      <Box variant="dark">
-        {#if lastDrop && !gambling}
-          <span>
-            You received:
-            <span class="font-sans normal-case text-cyan-500 font-medium"
-              >{#if lastDroppedItem?.amount > 1}
-                {prettyAmount(lastDroppedItem?.amount)}
-              {/if}
-              {lastDroppedItem?.name}</span
-            >
-          </span>
-        {:else}
-          {gambling ? 'Rolling...' : 'Click "GAMBLE" to roll'}
-        {/if}
-      </Box>
+
+    <div class="col-span-6 lg:col-span-5 flex flex-col justify-between gap-4">
+      <div class="w-full flex flex-col gap-8 xl:pl-8">
+        <div class="w-full grid grid-cols-3 gap-4 transition-all">
+          {#each container.drops as drop}
+            <ContainerDrop {drop} />
+          {/each}
+        </div>
+      </div>
+      <div class="">
+        <Box variant="dark">
+          {#if lastDrop && !gambling}
+            <span class="flex items-center gap-2">
+              <span> You received: </span>
+              <span class="font-sans normal-case text-emerald-400 font-medium"
+                >{#if lastDroppedItem?.amount > 1}
+                  {prettyAmount(lastDroppedItem?.amount)}
+                {/if}
+                {lastDroppedItem?.name}</span
+              >
+            </span>
+          {:else}
+            {gambling ? 'Rolling...' : 'Click "GAMBLE" to roll'}
+          {/if}
+        </Box>
+      </div>
     </div>
   </div>
 </div>
