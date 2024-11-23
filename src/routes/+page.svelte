@@ -15,6 +15,8 @@
   import { Christmas2024 } from '$lib/rewards/christmas2024';
   import { BaseXP, Coal, SantasGiftCertificate, Steel } from '$lib/resource';
   import RewardBreakdown from '$lib/components/RewardBreakdown.svelte';
+  import GamblingSimulator from '$lib/components/GamblingSimulator.svelte';
+  import { SantasMegaGiftContainer } from '$lib/containers/2024-santas-mega-gift-container';
 
   const activeEvent = new Christmas2024();
 
@@ -66,7 +68,7 @@
       })
       .filter((shiporError: Ship | Error) => {
         if (shiporError instanceof Error) {
-          console.error(shiporError);
+          console.warn(shiporError.message);
           return false;
         }
 
@@ -228,6 +230,18 @@
       {/await}
     </div>
   </div>
+
+  <div>
+    <Title size="text-4xl sm:text-6xl" align="left">
+      Try your luck
+
+      {#snippet subtitle()}
+        <div>Obviously, this is not real. But you can simulate the real drop rates here.</div>
+      {/snippet}
+    </Title>
+    <GamblingSimulator container={SantasMegaGiftContainer} />
+  </div>
+
   <div>
     <Title size="text-4xl sm:text-6xl" align="left">Breakdown</Title>
     {#await $rewards}

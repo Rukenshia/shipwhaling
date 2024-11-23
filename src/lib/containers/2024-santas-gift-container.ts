@@ -1,56 +1,80 @@
 import type { Container } from '$lib/container';
 
 export const SantasGiftContainer: Container = {
-  items: [
+  icon: '',
+  name: "Santa's Gift Container",
+
+  drops: [
     {
       probability: 0.05,
+      name: 'Dubloons',
       items: [{ name: 'Dubloons', amount: 500 }]
     },
     {
       probability: 0.01,
-      items: [{ name: 'Golden container', amount: 1 }]
+      name: 'Golden Container',
+      items: [{ name: '1x Golden Container', amount: 1 }]
     },
     {
       probability: 0.07,
+      name: 'Coal',
       items: [{ name: 'Coal', amount: 2500 }]
     },
     {
       probability: 0.01,
-      items: [{ name: 'WoWs Premium account (days)', amount: 30 }]
+      name: 'WoWs Premium account',
+      items: [{ name: 'Days of WoWs Premium Account', amount: 30 }]
     },
     {
       probability: 0.1,
+      name: 'Elite Commander XP',
       items: [{ name: 'Elite Commander XP', amount: 20000 }]
     },
     {
       probability: 0.1,
+      name: 'Credits',
       items: [{ name: 'Credits', amount: 400000 }]
     },
     {
       probability: 0.055,
-      items: [{ name: 'Port Slot', amount: 1 }]
+      name: 'Port Slot',
+      items: [{ name: '1x Port Slot', amount: 1 }]
     },
     {
-      probability: 0.025,
-      items: [{ name: 'Rare expendable economic bonus', amount: 3 }]
-    },
-    {
-      probability: 0.06,
-      items: [{ name: 'Special expendable economic bonus', amount: 12 }]
-    },
-    {
-      probability: 0.04,
+      name: 'Rare Expendable Economic Bonus',
+      probability: 0.025 * 4,
       items: [
-        { name: 'India Delta signal', amount: 25 },
-        { name: 'Sierra Mike signal', amount: 25 },
-        { name: 'Victor Lima signal', amount: 25 },
-        { name: 'India X-Ray signal', amount: 25 },
-        { name: 'X-Ray Papa Unaone signal', amount: 25 },
-        { name: 'Sierra Bravo signal', amount: 25 }
+        { name: 'Rare Credit Boosters', amount: 3 },
+        { name: 'Rare Ship XP Boosters', amount: 3 },
+        { name: 'Rare Commander XP Boosters', amount: 3 },
+        { name: 'Rare Free XP Boosters', amount: 3 }
+      ]
+    },
+    {
+      name: 'Special Expendable Economic Bonus',
+      probability: 0.06 * 4,
+      items: [
+        { name: 'Special Credit Boosters', amount: 12 },
+        { name: 'Special Ship XP Boosters', amount: 12 },
+        { name: 'Special Commander XP Boosters', amount: 12 },
+        { name: 'Special Free XP Boosters', amount: 12 }
+      ]
+    },
+    {
+      probability: 0.04 * 6,
+      name: 'Signals',
+      items: [
+        { name: 'India Delta Signals', amount: 25 },
+        { name: 'Sierra Mike Signals', amount: 25 },
+        { name: 'Victor Lima Signals', amount: 25 },
+        { name: 'India X-Ray Signals', amount: 25 },
+        { name: 'X-Ray Papa Unaone Signals', amount: 25 },
+        { name: 'Sierra Bravo Signals', amount: 25 }
       ]
     },
     {
       probability: 0.02,
+      name: 'Ship (okay)',
       items: [
         { name: 'Ise', amount: 1 },
         { name: 'Weimar', amount: 1 },
@@ -112,6 +136,7 @@ export const SantasGiftContainer: Container = {
     },
     {
       probability: 0.004,
+      name: 'Ship (good)',
       items: [
         { name: 'Minegumo', amount: 1 },
         { name: 'Tirpitz', amount: 1 },
@@ -166,6 +191,7 @@ export const SantasGiftContainer: Container = {
     },
     {
       probability: 0.001,
+      name: 'Ship (great)',
       items: [
         { name: 'Rhode Island', amount: 1 },
         { name: 'Malta', amount: 1 },
@@ -211,3 +237,9 @@ export const SantasGiftContainer: Container = {
     }
   ]
 };
+
+// ensure that the sum of all probabilities is 1
+const sum = SantasGiftContainer.drops.reduce((acc, drop) => acc + drop.probability, 0);
+if (sum !== 1) {
+  throw new Error(`The sum of all probabilities is ${sum}, but it should be 1`);
+}

@@ -1,41 +1,62 @@
-import type { Container } from '$lib/container';
+import { verifyProbabilities, type Container } from '$lib/container';
 
 export const SantasMegaGiftContainer: Container = {
-  items: [
+  icon: '',
+  name: "Santa's Mega Gift Container",
+  drops: [
     {
       probability: 0.05,
+      name: 'Dubloons',
       items: [{ name: 'Dubloons', amount: 2500 }]
     },
     {
       probability: 0.08,
+      name: 'Coal',
       items: [{ name: 'Coal', amount: 12500 }]
     },
     {
       probability: 0.1,
-      items: [{ name: 'Golden container', amount: 1 }]
+      name: 'Golden Container',
+      items: [{ name: '1x Golden Container', amount: 1 }]
     },
     {
       probability: 0.01,
-      items: [{ name: 'WoWs Premium account (days)', amount: 180 }]
+      name: 'WoWs Premium account',
+      items: [{ name: 'Days of WoWs Premium Account', amount: 180 }]
     },
     {
       probability: 0.1,
+      name: 'Elite Commander XP',
       items: [{ name: 'Elite Commander XP', amount: 100000 }]
     },
     {
       probability: 0.1,
+      name: 'Credits',
       items: [{ name: 'Credits', amount: 2250000 }]
     },
     {
-      probability: 0.08,
-      items: [{ name: 'Rare expendable economic bonus', amount: 20 }]
+      probability: 0.08 * 4,
+      name: 'Rare Expendable Economic Bonus',
+      items: [
+        { name: 'Rare Credit Boosters', amount: 20 },
+        { name: 'Rare Ship XP Boosters', amount: 20 },
+        { name: 'Rare Commander XP Boosters', amount: 20 },
+        { name: 'Rare Free XP Boosters', amount: 20 }
+      ]
     },
     {
-      probability: 0.02,
-      items: [{ name: 'Unique expendable economic bonus', amount: 7 }]
+      probability: 0.02 * 4,
+      name: 'Unique Expendable Economic Bonus',
+      items: [
+        { name: 'Unique Credit Boosters', amount: 7 },
+        { name: 'Unique Ship XP Boosters', amount: 7 },
+        { name: 'Unique Commander XP Boosters', amount: 7 },
+        { name: 'Unique Free XP Boosters', amount: 7 }
+      ]
     },
     {
       probability: 0.12,
+      name: 'Ship (okay)',
       items: [
         { name: 'Ise', amount: 1 },
         { name: 'Weimar', amount: 1 },
@@ -97,6 +118,7 @@ export const SantasMegaGiftContainer: Container = {
     },
     {
       probability: 0.03,
+      name: 'Ship (good)',
       items: [
         { name: 'Minegumo', amount: 1 },
         { name: 'Tirpitz', amount: 1 },
@@ -151,6 +173,7 @@ export const SantasMegaGiftContainer: Container = {
     },
     {
       probability: 0.01,
+      name: 'Ship (great)',
       items: [
         { name: 'Rhode Island', amount: 1 },
         { name: 'Malta', amount: 1 },
@@ -196,3 +219,5 @@ export const SantasMegaGiftContainer: Container = {
     }
   ]
 };
+
+verifyProbabilities(SantasMegaGiftContainer);

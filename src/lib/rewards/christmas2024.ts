@@ -64,7 +64,7 @@ export class Christmas2024 {
         reward.amount = 200;
         break;
       default:
-        console.error('Unknown ship tier:', ship.tier, ship.name);
+        console.warn('Unknown ship tier:', ship.tier, ship.name);
         return;
     }
 

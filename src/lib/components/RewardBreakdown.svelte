@@ -19,7 +19,7 @@
         {#each rewards as reward}
           <tr class="odd:bg-cyan-950/40">
             <td class="pl-2">{reward.ship.name}</td>
-            <td>{reward.baseXPRequired}</td>
+            <td>{reward.requiredXP}</td>
             <td class="text-right">
               {reward.amount}
               {reward.resource.name}
