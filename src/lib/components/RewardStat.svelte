@@ -1,7 +1,12 @@
 <script lang="ts">
-  export let title: string;
-  export let value: number;
-  export let icon: any | undefined = undefined;
+  interface Props {
+    title: string;
+    value: number;
+    icon?: any | undefined;
+    children?: import('svelte').Snippet;
+  }
+
+  let { title, value, icon = undefined, children }: Props = $props();
 </script>
 
 <div
@@ -23,11 +28,11 @@
       </div>
 
       <!-- if slot used -->
-      {#if $$slots.default}
+      {#if children}
         <div class="text-xs leading-6 leading-1 h-6">
-          <slot>
+          {#if children}{@render children()}{:else}
             <!-- Default content when slot is not used -->
-          </slot>
+          {/if}
         </div>
       {/if}
     </h2>

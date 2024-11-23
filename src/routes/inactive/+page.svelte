@@ -7,10 +7,12 @@
     <Title>
       Waiting for Santa
 
-      <div slot="subtitle">
-        See you when the <a href="https://blog.worldofwarships.com/blog/568">Festive Rewards</a> are
-        back.
-      </div>
+      {#snippet subtitle()}
+            <div >
+          See you when the <a href="https://blog.worldofwarships.com/blog/568">Festive Rewards</a> are
+          back.
+        </div>
+          {/snippet}
     </Title>
   </div>
 </div>

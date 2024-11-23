@@ -2,7 +2,7 @@
   import { Realm, login } from '$lib/store';
   import { onMount } from 'svelte';
 
-  let success = true;
+  let success = $state(true);
 
   onMount(() => {
     const urlParams = new URLSearchParams(window.location.search);

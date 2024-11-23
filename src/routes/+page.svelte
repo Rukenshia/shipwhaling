@@ -2,12 +2,7 @@
   import { Realm, login, user } from '$lib/store';
   import { onMount } from 'svelte';
   import { derived, type Readable } from 'svelte/store';
-  import {
-    type Reward,
-    calculateShipReward,
-    getMaxAdditionalRewards,
-    isTestShip
-  } from '$lib/reward';
+  import { type Reward } from '$lib/reward';
   import RewardStat from '$lib/components/RewardStat.svelte';
   import Faq from '$lib/components/FAQ.svelte';
 
@@ -15,22 +10,14 @@
   import Title from '$lib/components/Title.svelte';
   import ErrorMessage from '$lib/components/ErrorMessage.svelte';
   import type { Ship } from '$lib/ship';
-  import Shop from '$lib/components/Shop.svelte';
 
   import bmcLogo from '$lib/assets/bmc-logo.svg';
-  import festiveToken from '$lib/assets/festive-token.png';
-  import steel from '$lib/assets/steel.svg';
-  import baseXp from '$lib/assets/base-xp.svg';
+  import { Christmas2024 } from '$lib/rewards/christmas2024';
+  import { BaseXP, Coal, SantasGiftCertificate, Steel } from '$lib/resource';
 
-  const inactive = true;
+  const activeEvent = new Christmas2024();
 
   onMount(() => {
-    // page is inactive: redirect to inactive
-    if (inactive) {
-      window.location.href = '/inactive';
-      return;
-    }
-
     // try to init user from local storage
     const storedUser = localStorage.getItem('user');
 
@@ -50,7 +37,7 @@
     }
 
     const unsubscribe = user.subscribe(($user) => {
-      console.log($user);
+      console.log('user', $user);
     });
 
     return () => {
@@ -88,56 +75,65 @@
 
   const rewards = derived(shipsInPort, async ($shipsInPort) => {
     return (await $shipsInPort)
-      .map((ship: Ship) => ({ ...calculateShipReward(ship), ship }))
-      .filter((reward: Reward) => reward.festiveTokens > 0 || reward.steel > 0)
-      .sort(
-        (
-          a: { steel: number; festiveTokens: number },
-          b: { steel: number; festiveTokens: number }
-        ) => {
-          // Order by Steel first, then Festive Tokens. Always order by amount
-          if (a.steel > b.steel) {
+      .map((ship: Ship) => ({ ...activeEvent.calculateShipReward(ship), ship }))
+      .filter((reward: Reward & { ship: Ship }) => reward.amount > 0)
+      .sort((a: Reward, b: Reward) => {
+        switch (a.resource) {
+          case SantasGiftCertificate:
             return -1;
-          } else if (a.steel < b.steel) {
-            return 1;
-          } else {
-            if (a.festiveTokens > b.festiveTokens) {
-              return -1;
-            } else if (a.festiveTokens < b.festiveTokens) {
-              return 1;
-            } else {
-              return 0;
+          case Steel:
+            switch (b.resource) {
+              case SantasGiftCertificate:
+                return 1;
+              case Steel:
+                return a.amount - b.amount;
+              default:
+                return -1;
             }
-          }
+          case Coal:
+            switch (b.resource) {
+              case SantasGiftCertificate:
+              case Steel:
+                return 1;
+              case Coal:
+                return a.amount - b.amount;
+              default:
+                return -1;
+            }
         }
-      );
+      });
   });
 
-  interface TotalRewards {
-    festiveTokens: number;
-    steel: number;
-    baseXPRequired: number;
-    festiveTokenShips: number;
-    steelShips: number;
+  interface EventStats {
+    rewards: {
+      [key: string]: {
+        total: number;
+        ships: number;
+      };
+    };
+    totalRequiredXP: number;
   }
-  const totalRewards: Readable<Promise<TotalRewards>> = derived(rewards, async ($rewards) => {
-    const res = (await $rewards).reduce(
-      (acc: TotalRewards, reward: Reward & { ship: Ship }) => {
-        return {
-          festiveTokens: acc.festiveTokens + reward.festiveTokens,
-          steel: acc.steel + reward.steel,
-          baseXPRequired: acc.baseXPRequired + reward.baseXPRequired,
 
-          festiveTokenShips: acc.festiveTokenShips + (reward.festiveTokens > 0 ? 1 : 0),
-          steelShips: acc.steelShips + (reward.steel > 0 ? 1 : 0)
+  const eventStats: Readable<Promise<EventStats>> = derived(rewards, async ($rewards) => {
+    const res = (await $rewards).reduce(
+      (acc: EventStats, reward: Reward & { ship: Ship }) => {
+        return {
+          rewards: {
+            ...acc.rewards,
+            [reward.resource.name]: {
+              total: acc.rewards[reward.resource.name].total + reward.amount,
+              ships: acc.rewards[reward.resource.name].ships + 1
+            }
+          },
+          totalRequiredXP: acc.totalRequiredXP + reward.requiredXP
         };
       },
       {
-        festiveTokens: 0,
-        steel: 0,
-        baseXPRequired: 0,
-        festiveTokenShips: 0,
-        steelShips: 0
+        rewards: activeEvent.possibleResources.reduce(
+          (acc, resource) => ({ ...acc, [resource.name]: { total: 0, ships: 0 } }),
+          {}
+        ),
+        totalRequiredXP: 0
       }
     );
 
@@ -147,7 +143,7 @@
   const maxAdditionalRewards = derived(shipsInPort, async ($shipsInPort) => {
     const ships = await $shipsInPort;
 
-    return getMaxAdditionalRewards(ships.filter((ship: Ship) => !isTestShip(ship)).length);
+    return activeEvent.getMaxAdditionalRewards(ships);
   });
 
   const realmColors = {
@@ -167,7 +163,7 @@
           <div>Rewards</div>
           <div>
             <a
-              href="https://blog.worldofwarships.com/blog/552"
+              href="https://blog.worldofwarships.com/blog/568"
               target="_blank"
               class="block bg-white/20 hover:bg-white/30 transition-colors duration-200 backdrop-blur border-white/40 border-2 px-4 py-1 sm:py-2 text-white text-base sm:text-lg"
             >
@@ -176,7 +172,9 @@
           </div>
         </div>
 
-        <div slot="subtitle">The number of resources you can earn based on your ships in port.</div>
+        {#snippet subtitle()}
+          <div>The number of resources you can earn based on your ships in port.</div>
+        {/snippet}
       </Title>
       <div
         class="w-full sm:w-auto bg-white/10 backdrop-blur p-2 text-white text-sm flex flex-col header items-center justify-center"
@@ -191,27 +189,29 @@
         </div>
         <button
           class="mt-4 w-full h-full bg-rose-500/20 hover:bg-rose-500/40 transition-colors duration-200 px-2 py-2 border-2 border-rose-600/50 backdrop-blur text-rose-500 text-sm uppercase tracking-wider font-semibold"
-          on:click={() => logout()}
+          onclick={() => logout()}
         >
           <h5>Log out</h5>
         </button>
       </div>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      {#await $totalRewards}
-        <RewardStat title="Festive Tokens" icon={festiveToken} value={0} />
-        <RewardStat title="Steel" icon={steel} value={0} />
-        <RewardStat title="Base XP Required" icon={baseXp} value={0} />
-        <RewardStat title="Performance Bonus" value={0} />
+    <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 4xl:grid-cols-5 gap-4">
+      {#await $eventStats}
+        {#each activeEvent.possibleResources as resource}
+          <RewardStat title={resource.name} icon={resource.image} value={0} />
+        {/each}
       {:then rewards}
-        <RewardStat title="Festive Tokens" value={rewards.festiveTokens} icon={festiveToken}>
-          from {rewards.festiveTokenShips} ships
-        </RewardStat>
-        <RewardStat title="Steel" value={rewards.steel} icon={steel}>
-          from {rewards.steelShips} ships
-        </RewardStat>
-        <RewardStat title="Base XP Required" value={rewards.baseXPRequired} icon={baseXp}>
-          Worst case scenario
+        {#each activeEvent.possibleResources as resource}
+          <RewardStat
+            title={resource.name}
+            icon={resource.image}
+            value={rewards.rewards[resource.name].total}
+          >
+            from {rewards.rewards[resource.name].ships} ships
+          </RewardStat>
+        {/each}
+        <RewardStat title="Base XP Required" value={rewards.totalRequiredXP} icon={BaseXP.image}>
+          without additional rewards
         </RewardStat>
         {#await $maxAdditionalRewards}
           <RewardStat title="Additional Rewards" value={0} />
@@ -226,20 +226,6 @@
         <ErrorMessage>{error.message}</ErrorMessage>
       {/await}
     </div>
-  </div>
-  <div>
-    <Title size="text-4xl sm:text-6xl" align="left"
-      >Shop
-
-      <div slot="subtitle">Get an approximation of how you can spend your tokens.</div>
-    </Title>
-    {#await $totalRewards}
-      Loading
-    {:then totalRewards}
-      <Shop tokens={totalRewards.festiveTokens}></Shop>
-    {:catch error}
-      <ErrorMessage>{error.message}</ErrorMessage>
-    {/await}
   </div>
   <div>
     <Title size="text-4xl sm:text-6xl" align="left">Breakdown</Title>
@@ -265,20 +251,8 @@
                   <td class="pl-2">{reward.ship.name}</td>
                   <td>{reward.baseXPRequired}</td>
                   <td class="text-right">
-                    {#if reward.festiveTokens > 0}
-                      {reward.festiveTokens}
-                    {:else if reward.steel > 0}
-                      {reward.steel}
-                    {:else}
-                      0
-                    {/if}
-                    {#if reward.festiveTokens > 0}
-                      Festive Tokens
-                    {:else if reward.steel > 0}
-                      Steel
-                    {:else}
-                      None
-                    {/if}
+                    {reward.amount}
+                    {reward.resource.name}
                   </td>
                 </tr>
               {/each}
@@ -296,8 +270,8 @@
       <Title size="text-4xl sm:text-6xl" align="left">About</Title>
       <div class="bg-slate-950/50 backdrop-blur-sm rounded-lg p-8 space-y-6 text-cyan-100">
         <p class="leading-relaxed">
-          On this website, you can plan your Anniversary Event rewards and purchases. It uses the
-          ships you currently have in your port to calculate available rewards.
+          On this website, you can plan your Event rewards. It uses the ships you currently have in
+          your port to calculate available rewards.
         </p>
         <div class="space-y-4">
           <p class="leading-relaxed">

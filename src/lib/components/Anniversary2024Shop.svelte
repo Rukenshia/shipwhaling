@@ -1,5 +1,11 @@
 <script lang="ts">
-  export let tokens: number;
+  import { run } from 'svelte/legacy';
+
+  interface Props {
+    tokens: number;
+  }
+
+  let { tokens }: Props = $props();
 
   const items = [
     { name: 'Rochester', cost: 6250, limit: 1 },
@@ -16,18 +22,18 @@
     { name: 'Signals pack 2', cost: 50, limit: null }
   ];
 
-  let cart = {};
-  let includeEventPass = false;
-  let includeAnniversaryRewards = false;
+  let cart = $state({});
+  let includeEventPass = $state(false);
+  let includeAnniversaryRewards = $state(false);
 
-  $: {
+  run(() => {
     if (Object.keys(cart).length === 0) {
       cart = items.reduce((acc, item) => {
         acc[item.name] = 0;
         return acc;
       }, {});
     }
-  }
+  });
 
   function updateQuantity(itemName: string, newQuantity: number) {
     const item = items.find((i) => i.name === itemName);
@@ -39,21 +45,21 @@
     cart = { ...cart };
   }
 
-  $: totalCost = Object.entries(cart).reduce((total, [itemName, quantity]) => {
+  let totalCost = $derived(Object.entries(cart).reduce((total, [itemName, quantity]) => {
     const item = items.find((i) => i.name === itemName);
     return total + item.cost * quantity;
-  }, 0);
+  }, 0));
 
-  $: extraTokens = (includeEventPass ? 4000 : 0) + (includeAnniversaryRewards ? 1000 : 0);
-  $: totalTokens = tokens + extraTokens;
-  $: remainingTokens = totalTokens - totalCost;
+  let extraTokens = $derived((includeEventPass ? 4000 : 0) + (includeAnniversaryRewards ? 1000 : 0));
+  let totalTokens = $derived(tokens + extraTokens);
+  let remainingTokens = $derived(totalTokens - totalCost);
 
-  $: remainingTokensClass =
-    remainingTokens < 0
+  let remainingTokensClass =
+    $derived(remainingTokens < 0
       ? 'text-red-500'
       : remainingTokens < tokens * 0.1
         ? 'text-yellow-300'
-        : 'text-cyan-50';
+        : 'text-cyan-50');
 </script>
 
 <div class="space-y-8">
@@ -132,7 +138,7 @@
             <td class="py-2.5">
               <div class="flex items-end space-x-2 float-right">
                 <button
-                  on:click={() => updateQuantity(item.name, cart[item.name] - 1)}
+                  onclick={() => updateQuantity(item.name, cart[item.name] - 1)}
                   disabled={cart[item.name] === 0}
                   class="px-2 py-1 bg-cyan-800 hover:bg-cyan-700 text-cyan-100 rounded-md disabled:bg-cyan-900 disabled:text-cyan-700 disabled:cursor-not-allowed transition-colors duration-200"
                 >
@@ -141,13 +147,13 @@
                 <input
                   type="number"
                   bind:value={cart[item.name]}
-                  on:input={(e) => updateQuantity(item.name, parseInt(e.target.value) || 0)}
+                  oninput={(e) => updateQuantity(item.name, parseInt(e.target.value) || 0)}
                   min="0"
                   max={item.limit || undefined}
                   class="w-10 sm:w-16 bg-cyan-900/50 text-cyan-100 rounded-md px-1 sm:px-2 py-1 text-center"
                 />
                 <button
-                  on:click={() => updateQuantity(item.name, cart[item.name] + 1)}
+                  onclick={() => updateQuantity(item.name, cart[item.name] + 1)}
                   disabled={item.limit && cart[item.name] >= item.limit}
                   class="px-2 py-1 bg-cyan-800 hover:bg-cyan-700 text-cyan-100 rounded-md disabled:bg-cyan-900 disabled:text-cyan-700 disabled:cursor-not-allowed transition-colors duration-200"
                 >

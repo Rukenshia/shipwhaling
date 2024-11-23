@@ -2,6 +2,12 @@
   import '../app.css';
 
   import whale from '$lib/assets/whale.gif';
+
+  interface Props {
+    children?: import('svelte').Snippet;
+  }
+
+  let { children }: Props = $props();
 </script>
 
 <div class="w-full min-h-screen relative flex flex-col">
@@ -33,7 +39,7 @@
           WARSHIP WHALING
         </h1>
         <h2 class="text-center text-base sm:text-xl lg:text-2xl text-cyan-50/80 drop-shadow-2xl">
-          Plan your Anniversary Event Rewards and Purchases
+          Plan your Christmas Event Rewards
         </h2>
       </div>
     </div>
@@ -41,7 +47,7 @@
       class="grid grid-cols-1 lg:grid-cols-6 xl:grid-cols-12 gap-4 px-4 lg:px-16 text-cyan-50 mt-16"
     >
       <div class="col-span-1 lg:col-start-2 lg:col-span-4 xl:col-start-2 xl:col-span-10">
-        <slot />
+        {@render children?.()}
       </div>
     </div>
   </div>

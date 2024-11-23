@@ -4,4 +4,5 @@ export interface Ship {
   name: string;
   type: string;
   image: string;
+  hasDemoProfile: boolean;
 }

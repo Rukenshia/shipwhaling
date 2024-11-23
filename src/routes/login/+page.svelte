@@ -2,17 +2,6 @@
   import Faq from '$lib/components/FAQ.svelte';
   import Title from '$lib/components/Title.svelte';
   import { Realm } from '$lib/store';
-  import { onMount } from 'svelte';
-
-  const inactive = true;
-
-  onMount(() => {
-    // page is inactive: redirect to inactive
-    if (inactive) {
-      window.location.href = '/inactive';
-      return;
-    }
-  });
 
   async function redirectToLogin(realm: 'eu' | 'com' | 'asia') {
     const expiresAt = Date.now() + 3600 * 24 * 1;
@@ -43,14 +32,16 @@
     <Title>
       Select a Server to log in
 
-      <div slot="subtitle">You will be redirected to the Wargaming login.</div>
+      {#snippet subtitle()}
+        <div>You will be redirected to the Wargaming login.</div>
+      {/snippet}
     </Title>
 
     <div class="grid grid-cols-3 gap-8 items-center justify-center items-stretch">
       {#each realms as realm}
         <button
           class={`p-8 aspect-square rounded-lg text-white font-bold transition-colors duration-300 ease-in-out ${realm.colorClasses}`}
-          on:click={() => redirectToLogin(realm.name)}
+          onclick={() => redirectToLogin(realm.name)}
         >
           {realm.label}
         </button>
@@ -63,8 +54,8 @@
       <Title align="left">About</Title>
 
       <p>
-        This website is a tool to help you plan your Anniversary Event rewards and purchases. In
-        order to do that, you need to log in with your Wargaming account.
+        This website is a tool to help you plan your Christmas Event rewards. In order to do that,
+        you need to log in with your Wargaming account.
       </p>
     </div>
 
