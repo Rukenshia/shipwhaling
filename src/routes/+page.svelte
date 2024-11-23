@@ -14,6 +14,7 @@
   import bmcLogo from '$lib/assets/bmc-logo.svg';
   import { Christmas2024 } from '$lib/rewards/christmas2024';
   import { BaseXP, Coal, SantasGiftCertificate, Steel } from '$lib/resource';
+  import RewardBreakdown from '$lib/components/RewardBreakdown.svelte';
 
   const activeEvent = new Christmas2024();
 
@@ -232,34 +233,7 @@
     {#await $rewards}
       Loading
     {:then rewards}
-      <div class="bg-slate-950/50 backdrop-blur-sm rounded p-2 sm:p-8">
-        <div class="w-full overflow-y-auto max-h-[30vh]">
-          <table class="w-full text-left">
-            <thead>
-              <tr class="text-gray-400 text-lg uppercase">
-                <th class="pl-2">Ship</th>
-                <th>
-                  <span class="hidden sm:inline">Base XP Requirement</span>
-                  <span class="sm:hidden">BXP</span>
-                </th>
-                <th class="text-right">Reward</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-cyan-800 rounded text-cyan-100">
-              {#each rewards as reward}
-                <tr class="odd:bg-cyan-950/40">
-                  <td class="pl-2">{reward.ship.name}</td>
-                  <td>{reward.baseXPRequired}</td>
-                  <td class="text-right">
-                    {reward.amount}
-                    {reward.resource.name}
-                  </td>
-                </tr>
-              {/each}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <RewardBreakdown {rewards} />
     {:catch error}
       <ErrorMessage>{error.message}</ErrorMessage>
     {/await}
@@ -363,20 +337,3 @@
     </div>
   </div>
 </div>
-
-<style>
-  /* width */
-  ::-webkit-scrollbar {
-    width: 10px;
-  }
-
-  /* Track */
-  ::-webkit-scrollbar-track {
-    @apply bg-cyan-950 rounded-lg;
-  }
-
-  /* Handle */
-  ::-webkit-scrollbar-thumb {
-    @apply bg-cyan-300/50 rounded-lg;
-  }
-</style>
