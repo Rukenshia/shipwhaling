@@ -11,6 +11,7 @@
   import ContainerDrop from './ContainerDrop.svelte';
 
   let container: Container = $state(SantasGiftContainer);
+  let fastRoll = $state(false);
 
   const randomElement = (arr: NodeList | any[]) => {
     return arr[Math.floor(Math.random() * arr.length)];
@@ -39,8 +40,48 @@
   let lastDroppedItem = $derived(lastDrop ? randomElement(lastDrop?.items) : undefined);
   let gambling = $state(false);
 
+  function animateFinalDrop(el: HTMLElement, props: any = {}) {
+    anime({
+      targets: el,
+      backgroundColor: [{ value: 'rgba(30,41,59, 0.3)' }, { value: 'rgb(52,211,153, 0.5)' }],
+      outlineColor: [{ value: 'rgba(71,85,105, 0.6)' }, { value: 'rgb(52,211,153, 0.8)' }],
+      duration: 1500,
+      easing: 'linear',
+      loop: false,
+      complete: () => {
+        el.setAttribute('data-drop-active', 'true');
+      },
+      ...props
+    });
+  }
+
   function gamble() {
     gambling = true;
+
+    if (fastRoll) {
+      const finalDropEl = document.querySelector(`[data-drop-name="${lastDrop?.name}"]`);
+      if (finalDropEl) {
+        // reset last drop
+        finalDropEl.setAttribute('data-drop-active', 'false');
+        anime({
+          targets: finalDropEl,
+          backgroundColor: 'rgba(30,41,59, 0.3)',
+          outlineColor: 'rgba(71,85,105, 0.6)',
+          easing: 'linear',
+          loop: false,
+          duration: 100
+        });
+      }
+
+      const finalDrop = getRandomDrop();
+      lastDrop = finalDrop;
+      gambling = false;
+      animateFinalDrop(
+        document.querySelector(`[data-drop-name="${finalDrop.name}"]`) as HTMLElement,
+        { duration: 250 }
+      );
+      return;
+    }
 
     const lastDropEl = document.querySelector(`[data-drop-name="${lastDrop?.name}"]`);
     if (lastDropEl) {
@@ -49,7 +90,6 @@
 
     const targets = document.querySelectorAll('.drop');
     let animatedEl = lastDropEl ? lastDropEl : randomElement(targets);
-    let finalAnimationStarted = false;
 
     const intv = setInterval(() => {
       anime({
@@ -69,9 +109,6 @@
         loop: false
       });
 
-      if (finalAnimationStarted) {
-        return;
-      }
       animatedEl = randomElement(targets);
     }, 100);
 
@@ -81,18 +118,7 @@
     setTimeout(() => {
       clearInterval(intv);
 
-      finalAnimationStarted = true;
-      anime({
-        targets: finalDropEl,
-        backgroundColor: [{ value: 'rgba(255, 255, 255, 0.1)' }, { value: 'rgb(52,211,153, 0.5)' }],
-        outlineColor: [{ value: 'rgba(255, 255, 255, 0.1)' }, { value: 'rgb(52,211,153, 0.8)' }],
-        duration: 1500,
-        easing: 'linear',
-        loop: false,
-        complete: () => {
-          finalDropEl?.setAttribute('data-drop-active', 'true');
-        }
-      });
+      animateFinalDrop(finalDropEl as HTMLElement);
     }, 4000);
 
     setTimeout(() => {
@@ -155,6 +181,31 @@
         <DiceIcon />
         <div>gamble</div>
       </button>
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          onclick={() => {
+            fastRoll = !fastRoll;
+          }}
+          class={`
+          group relative inline-flex h-8 w-16 shrink-0 cursor-pointer items-center justify-center
+
+          ${fastRoll ? 'bg-emerald-300/20' : 'bg-gray-200/20'}
+        `}
+          role="switch"
+          aria-checked="false"
+        >
+          <span class="sr-only">fast roll</span>
+          <span
+            aria-hidden="true"
+            class={`
+            pointer-events-none absolute left-1 inline-block size-6 transform border border-gray-200 bg-white shadow ring-0 transition-transform duration-200 ease-in-out
+            ${fastRoll ? 'translate-x-8' : 'translate-x-0'}
+          `}
+          ></span>
+        </button>
+        <span class="header uppercase">Fast roll</span>
+      </div>
     </div>
 
     <div
@@ -162,7 +213,7 @@
     >
       <div class="w-full flex flex-col gap-8">
         <div class="w-full grid grid-cols-2 lg:grid-cols-3 gap-4 transition-all">
-          {#each container.drops as drop}
+          {#each container.drops as drop (`${container.name}-${drop.name}`)}
             <ContainerDrop {drop} />
           {/each}
         </div>

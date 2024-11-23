@@ -11,7 +11,7 @@
   <div>
     {drop.name}
   </div>
-  <div class="text-gray-300 group-data-[drop-active=true]:text-white">
+  <div class="text-gray-400 group-data-[drop-active=true]:text-white">
     {Math.trunc(drop.probability * 1000) / 10}%
   </div>
 </div>
