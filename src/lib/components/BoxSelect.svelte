@@ -15,7 +15,7 @@
     class={`
       header
       uppercase
-      flex flex-col gap-4 items-center
+      flex flex-col gap-2 items-center
       px-4 py-2 text-sm text-white backdrop-blur
 
       outline outline-2  -outline-offset-2
