@@ -4,10 +4,20 @@ import steel from './assets/steel.svg';
 import festiveToken from './assets/festive-token.png';
 import santasGiftCertificate from './assets/santas-gift-certificate.png';
 import baseXP from './assets/base-xp.svg';
+import { SantasGiftContainer } from './containers/2024-santas-gift-container';
+import { SantasMegaGiftContainer } from './containers/2024-santas-mega-gift-container';
 
 export interface Resource {
   name: string;
   image: any;
+
+  convertsTo?: Conversion[];
+}
+
+export interface Conversion {
+  container?: any;
+  cost: number;
+  returns: number;
 }
 
 export const Coal: Resource = {
@@ -27,7 +37,20 @@ export const FestiveTokens: Resource = {
 
 export const SantasGiftCertificate: Resource = {
   name: "Santa's Gift Certificate",
-  image: santasGiftCertificate
+  image: santasGiftCertificate,
+
+  convertsTo: [
+    {
+      container: SantasGiftContainer,
+      cost: 1,
+      returns: 1
+    },
+    {
+      container: SantasMegaGiftContainer,
+      cost: 5,
+      returns: 1
+    }
+  ]
 };
 
 export const BaseXP: Resource = {

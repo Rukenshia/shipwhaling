@@ -13,7 +13,7 @@
 
   import bmcLogo from '$lib/assets/bmc-logo.svg';
   import { Christmas2024 } from '$lib/rewards/christmas2024';
-  import { BaseXP, Coal, SantasGiftCertificate, Steel } from '$lib/resource';
+  import { BaseXP, Coal, SantasGiftCertificate, Steel, type Resource } from '$lib/resource';
   import RewardBreakdown from '$lib/components/RewardBreakdown.svelte';
   import GamblingSimulator from '$lib/components/GamblingSimulator.svelte';
   import { SantasMegaGiftContainer } from '$lib/containers/2024-santas-mega-gift-container';
@@ -114,6 +114,13 @@
         ships: number;
       };
     };
+    conversions: {
+      [key: string]: {
+        container: any;
+        source: Resource;
+        total: number;
+      };
+    };
     totalRequiredXP: number;
   }
 
@@ -128,6 +135,7 @@
               ships: acc.rewards[reward.resource.name].ships + 1
             }
           },
+          conversions: {},
           totalRequiredXP: acc.totalRequiredXP + reward.requiredXP
         };
       },
@@ -136,9 +144,43 @@
           (acc, resource) => ({ ...acc, [resource.name]: { total: 0, ships: 0 } }),
           {}
         ),
+        conversions: {},
         totalRequiredXP: 0
       }
     );
+
+    // calculate container conversions
+    for (const resourceName of Object.keys(res.rewards)) {
+      const total = res.rewards[resourceName].total;
+      const resource: Resource = activeEvent.possibleResources.find((r) => r.name === resourceName);
+      if (!resource) {
+        continue;
+      }
+
+      for (const conversion of resource.convertsTo || []) {
+        const maxAmount = Math.floor(total / conversion.cost);
+
+        if (res.conversions[conversion.container.name]) {
+          res.conversions[conversion.container.name].total += maxAmount * conversion.returns;
+          res.conversions[conversion.container.name].container = conversion.container;
+        } else {
+          res.conversions[conversion.container.name] = {
+            total: maxAmount * conversion.returns,
+            container: conversion.container,
+            source: resource
+          };
+        }
+      }
+    }
+
+    res.conversions = Object.keys(res.conversions).reduce((acc, key) => {
+      if (res.conversions[key].total > 0) {
+        return { ...acc, [key]: res.conversions[key] };
+      }
+
+      return acc;
+    }, {});
+    console.log(res);
 
     return res;
   });
@@ -204,6 +246,7 @@
       {#await $eventStats}
         {#each activeEvent.possibleResources as resource}
           <RewardStat title={resource.name} icon={resource.image} value={0} />
+          <RewardStat title={resource.name} icon={resource.image} value={0} />
         {/each}
       {:then rewards}
         {#each activeEvent.possibleResources as resource}
@@ -215,9 +258,15 @@
             from {rewards.rewards[resource.name].ships} ships
           </RewardStat>
         {/each}
-        <RewardStat title="Base XP Required" value={rewards.totalRequiredXP} icon={BaseXP.image}>
-          without additional rewards
-        </RewardStat>
+        {#each Object.keys(rewards.conversions) as conversionStat}
+          <RewardStat
+            title={rewards.conversions[conversionStat].container.name}
+            icon={rewards.conversions[conversionStat].container.icon}
+            value={rewards.conversions[conversionStat].total}
+          >
+            by converting all {rewards.conversions[conversionStat].source.name}
+          </RewardStat>
+        {/each}
         {#await $maxAdditionalRewards}
           <RewardStat title="Additional Rewards" value={0} />
         {:then maxAdditionalRewards}
