@@ -2,6 +2,16 @@
   import type { ItemDrop } from '$lib/container';
 
   let { drop }: { drop: ItemDrop } = $props();
+
+  let chance = (() => {
+    let v = Math.ceil(drop.probability * 100 * 10000) / 10000;
+
+    // correct floating point errors (in a bad way)
+    if (v - Math.floor(v) < 0.001) {
+      v = Math.floor(v);
+    }
+    return v;
+  })();
 </script>
 
 <div
@@ -12,6 +22,6 @@
     {drop.name}
   </div>
   <div class="text-gray-400 group-data-[drop-active=true]:text-white">
-    {Math.ceil(drop.probability * 100 * 1000) / 1000}%
+    {chance}%
   </div>
 </div>
