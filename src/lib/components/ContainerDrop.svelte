@@ -18,9 +18,9 @@
 <div
   data-drop-name={drop.name}
   class={`
-    drop group w-full sm:w-auto p-2 text-white text-sm flex header items-center justify-between bg-slate-800/30 outline outline-1 outline-slate-600/60 -outline-offset-2
+    drop group w-full sm:w-auto p-2 text-white text-sm flex header items-center justify-between  outline outline-1 outline-slate-600/60 -outline-offset-2
 
-    ${simulated && count ? 'group-data-[drop-active=true] bg-emerald-600/60 outline-white/40' : ''}
+    ${simulated && count ? 'bg-emerald-600/60 outline-white/40' : 'bg-slate-800/30'}
     `}
 >
   <div>
@@ -31,7 +31,7 @@
   </div>
   <div
     class="text-gray-400 group-data-[drop-active=true]:text-white"
-    class:text-gray-200={simulated && count}
+    class:text-white={simulated && count}
   >
     {#if simulated}
       {count}x
