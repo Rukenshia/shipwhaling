@@ -6,6 +6,12 @@ export class Christmas2024 {
   constructor() {}
 
   private isTestShip(ship: Ship): boolean {
+    // some ships are not marked as test ships in the API, so let's filter
+    // them manually
+    if (['Hull', 'Ferrante Gonzaga', 'Yari', 'Archerfish', 'Taihang'].includes(ship.name)) {
+      return true;
+    }
+
     return ship.hasDemoProfile;
   }
 
