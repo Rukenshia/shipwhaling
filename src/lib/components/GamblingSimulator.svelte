@@ -28,12 +28,6 @@
     })
   });
 
-  $effect(() => {
-    if (container) {
-      simulationResults = undefined;
-    }
-  });
-
   let fastRoll = $state(false);
 
   const randomElement = (arr: NodeList | any[]) => {
@@ -60,7 +54,14 @@
   let lastDroppedItem = $derived(lastDrop ? randomElement(lastDrop?.items) : undefined);
   let simulationResults: { drop: ItemDrop; item: Item; count: number }[] | undefined =
     $state(undefined);
+  let simulationRolls = $state(5);
   let gambling = $state(false);
+
+  $effect(() => {
+    if (container) {
+      simulationResults = undefined;
+    }
+  });
 
   function animateFinalDrop(el: HTMLElement, props: any = {}) {
     anime({
@@ -78,9 +79,17 @@
   }
 
   function simulate() {
+    if (simulationRolls > 100000) {
+      simulationRolls = 100000;
+    }
+
+    if (simulationRolls < 1) {
+      simulationRolls = 1;
+    }
     gambling = true;
+    console.log('simulating', simulationRolls);
     let results: { [key: string]: { drop: ItemDrop; item: Item; count: number } } = Array.from(
-      { length: 10000 },
+      { length: simulationRolls },
       () => {
         const drop = getRandomDrop();
 
@@ -237,11 +246,17 @@
         <DiceIcon />
         <div>gamble</div>
       </button>
-      <button
-        class={`
-      items-center
-      justify-center
-      xl:justify-start
+      <div class="flex gap-2">
+        <input
+          type="number"
+          class="header bg-white/30 text-white w-16 text-center px-1 py-1"
+          min="1"
+          max="100000"
+          step="1"
+          bind:value={simulationRolls}
+        />
+        <button
+          class={`
       header gambling-button
       px-2 py-1 transition-all
       backdrop-blur
@@ -252,12 +267,13 @@
 
       hover:bg-slate-600/60
       uppercase text-sm font-medium
-      flex flex-col gap-4 items-center`}
-        disabled={gambling}
-        onclick={simulate}
-      >
-        simulate 10k rolls
-      </button>
+      `}
+          disabled={gambling}
+          onclick={simulate}
+        >
+          simulate rolls
+        </button>
+      </div>
       <div class="flex items-center gap-2">
         <button
           type="button"
@@ -340,3 +356,17 @@
     </div>
   </div>
 </div>
+
+<style>
+  /* Chrome, Safari, Edge, Opera */
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* Firefox */
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+</style>
