@@ -46,7 +46,7 @@ export const SantasGiftContainer: Container = {
     {
       probability: 0.055,
       name: 'Port Slot',
-      items: [{ name: '1x Port Slot', amount: 1 }]
+      items: [{ name: 'Port Slot', amount: 1 }]
     },
     {
       name: 'Rare Expendable Economic Bonus',

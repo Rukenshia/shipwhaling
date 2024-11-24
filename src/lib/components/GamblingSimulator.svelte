@@ -1,6 +1,6 @@
 <script lang="ts">
   import anime from 'animejs';
-  import { type Container, type ItemDrop } from '$lib/container';
+  import { type Container, type Item, type ItemDrop } from '$lib/container';
   import DiceIcon from './DiceIcon.svelte';
   import BoxSelect from './BoxSelect.svelte';
   import { SantasGiftContainer } from '$lib/containers/2024-santas-gift-container';
@@ -35,6 +35,8 @@
 
   let lastDrop: ItemDrop | undefined = $state(undefined);
   let lastDroppedItem = $derived(lastDrop ? randomElement(lastDrop?.items) : undefined);
+  let simulationResults: { drop: ItemDrop; item: Item; count: number }[] | undefined =
+    $state(undefined);
   let gambling = $state(false);
 
   function animateFinalDrop(el: HTMLElement, props: any = {}) {
@@ -52,8 +54,39 @@
     });
   }
 
+  function simulate() {
+    gambling = true;
+    let results: { [key: string]: { drop: ItemDrop; item: Item; count: number } } = Array.from(
+      { length: 10000 },
+      () => {
+        const drop = getRandomDrop();
+
+        return { drop: drop, item: randomElement(drop.items) };
+      }
+    ).reduce(
+      (acc: { [key: string]: { drop: ItemDrop; item: Item; count: number } }, { drop, item }) => {
+        const key = `${drop.name}`; //-${item.name}`;
+        if (!acc[key]) {
+          acc[key] = { drop, item, count: 0 };
+        }
+        acc[key].count++;
+        return acc;
+      },
+      {}
+    );
+
+    // sort into array by count
+    let sortedResults: { drop: ItemDrop; item: Item; count: number }[] = Object.values(
+      results
+    ).sort((a, b) => b.count - a.count);
+
+    gambling = false;
+    simulationResults = sortedResults;
+  }
+
   function gamble() {
     gambling = true;
+    simulationResults = undefined;
 
     if (fastRoll) {
       const finalDropEl = document.querySelector(`[data-drop-name="${lastDrop?.name}"]`);
@@ -177,6 +210,27 @@
         <DiceIcon />
         <div>gamble</div>
       </button>
+      <button
+        class={`
+      items-center
+      justify-center
+      xl:justify-start
+      header gambling-button
+      px-2 py-1 transition-all
+      backdrop-blur
+
+      bg-slate-300/20 text-white
+      outline outline-2 outline-slate-200/60 -outline-offset-2
+      disabled:bg-slate-800/40 disabled:text-slate-300
+
+      hover:bg-slate-600/60
+      uppercase text-sm font-medium
+      flex flex-col gap-4 items-center`}
+        disabled={gambling}
+        onclick={simulate}
+      >
+        simulate 10k rolls
+      </button>
       <div class="flex items-center gap-2">
         <button
           type="button"
@@ -224,9 +278,15 @@
           </Box>
         {/if}
         <div class="w-full grid grid-cols-2 lg:grid-cols-3 3xl:grid-cols-6 gap-4 transition-all">
-          {#each container.drops as drop (`${container.name}-${drop.name}`)}
-            <ContainerDrop {drop} />
-          {/each}
+          {#if simulationResults}
+            {#each simulationResults as { drop, item, count } (`simul-${drop.name}-${item.name}`)}
+              <ContainerDrop simulated={true} {drop} {count} />
+            {/each}
+          {:else}
+            {#each container.drops as drop (`${container.name}-${drop.name}`)}
+              <ContainerDrop {drop} />
+            {/each}
+          {/if}
         </div>
       </div>
       <div class="">

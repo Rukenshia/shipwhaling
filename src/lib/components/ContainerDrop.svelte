@@ -1,7 +1,8 @@
 <script lang="ts">
   import type { ItemDrop } from '$lib/container';
 
-  let { drop }: { drop: ItemDrop } = $props();
+  let { drop, simulated, count }: { drop: ItemDrop; simulated?: boolean; count?: number } =
+    $props();
 
   let chance = (() => {
     let v = Math.ceil(drop.probability * 100 * 10000) / 10000;
@@ -16,12 +17,23 @@
 
 <div
   data-drop-name={drop.name}
-  class="drop group w-full sm:w-auto p-2 text-white text-sm flex header items-center justify-between bg-slate-800/30 outline outline-1 outline-slate-600/60 -outline-offset-2"
+  class={`
+    drop group w-full sm:w-auto p-2 text-white text-sm flex header items-center justify-between bg-slate-800/30 outline outline-1 outline-slate-600/60 -outline-offset-2
+
+    ${simulated ? 'group-data-[drop-active=true] bg-emerald-600/60 outline-white/40' : ''}
+    `}
 >
   <div>
     {drop.name}
   </div>
-  <div class="text-gray-400 group-data-[drop-active=true]:text-white">
-    {chance}%
+  <div
+    class="text-gray-400 group-data-[drop-active=true]:text-white"
+    class:text-gray-200={simulated}
+  >
+    {#if simulated}
+      {count}x
+    {:else}
+      {chance}%
+    {/if}
   </div>
 </div>

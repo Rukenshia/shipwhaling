@@ -26,7 +26,7 @@ export const SantasMegaGiftContainer: Container = {
     {
       probability: 0.1,
       name: 'Golden Container',
-      items: [{ name: '1x Golden Container', amount: 1 }]
+      items: [{ name: 'Golden Container', amount: 1 }]
     },
     {
       probability: 0.01,
