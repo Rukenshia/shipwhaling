@@ -13,14 +13,32 @@
 
   import bmcLogo from '$lib/assets/bmc-logo.svg';
   import { Christmas2024 } from '$lib/rewards/christmas2024';
-  import { BaseXP, Coal, SantasGiftCertificate, Steel, type Resource } from '$lib/resource';
+  import { Coal, SantasGiftCertificate, Steel, type Resource } from '$lib/resource';
   import RewardBreakdown from '$lib/components/RewardBreakdown.svelte';
   import GamblingSimulator from '$lib/components/GamblingSimulator.svelte';
-  import { SantasMegaGiftContainer } from '$lib/containers/2024-santas-mega-gift-container';
+  import { slide } from 'svelte/transition';
+  import ModifierSelect from '$lib/components/ModifierSelect.svelte';
+  import { CoalPort, SteelPort } from '$lib/modifiers';
 
   const activeEvent = new Christmas2024();
 
+  let showSettings = $state(true);
+  let coalModifier = $state(1);
+  let steelModifier = $state(1);
+
+  function saveModifiers() {
+    localStorage.setItem('coalModifier', `${coalModifier}`);
+    localStorage.setItem('steelModifier', `${steelModifier}`);
+  }
+
   onMount(() => {
+    // load modifiers
+    coalModifier = parseFloat(localStorage.getItem('coalModifier') || '1');
+    steelModifier = parseFloat(localStorage.getItem('steelModifier') || '1');
+
+    console.log('coalModifier', coalModifier);
+    console.log('steelModifier', steelModifier);
+
     // try to init user from local storage
     const storedUser = localStorage.getItem('user');
 
@@ -50,6 +68,8 @@
 
   function logout() {
     localStorage.removeItem('user');
+    localStorage.removeItem('coalModifier');
+    localStorage.removeItem('steelModifier');
     window.location.href = '/login';
   }
 
@@ -75,6 +95,22 @@
         return true;
       });
   });
+
+  function applyModifier(
+    value: number,
+    resource: Resource,
+    coalModifier: number,
+    steelModifier: number
+  ) {
+    switch (resource) {
+      case Coal:
+        return Math.floor(value * coalModifier);
+      case Steel:
+        return Math.floor(value * steelModifier);
+      default:
+        return value;
+    }
+  }
 
   const rewards = derived(shipsInPort, async ($shipsInPort) => {
     return (await $shipsInPort)
@@ -222,7 +258,7 @@
         {/snippet}
       </Title>
       <div
-        class="w-full sm:w-auto bg-white/10 backdrop-blur p-2 text-white text-sm flex flex-col header items-center justify-center"
+        class="flex-shrink w-full sm:w-auto sm:min-w-[16rem] bg-white/10 backdrop-blur p-2 text-white text-sm flex flex-col header items-center justify-center"
       >
         <div class="text-sm uppercase">
           Logged in as
@@ -238,6 +274,50 @@
         >
           <h5>Log out</h5>
         </button>
+        <button
+          class="mt-4 w-full h-full bg-white/20 hover:bg-white/10 transition-colors duration-200 px-2 py-2 border-2 border-white/20 backdrop-blur text-gray-200 text-sm uppercase tracking-wider font-semibold flex items-center justify-center gap-1"
+          onclick={() => (showSettings = !showSettings)}
+        >
+          <svg
+            class="h-6 w-6"
+            data-slot="icon"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path
+              clip-rule="evenodd"
+              fill-rule="evenodd"
+              d="M7.84 1.804A1 1 0 0 1 8.82 1h2.36a1 1 0 0 1 .98.804l.331 1.652a6.993 6.993 0 0 1 1.929 1.115l1.598-.54a1 1 0 0 1 1.186.447l1.18 2.044a1 1 0 0 1-.205 1.251l-1.267 1.113a7.047 7.047 0 0 1 0 2.228l1.267 1.113a1 1 0 0 1 .206 1.25l-1.18 2.045a1 1 0 0 1-1.187.447l-1.598-.54a6.993 6.993 0 0 1-1.929 1.115l-.33 1.652a1 1 0 0 1-.98.804H8.82a1 1 0 0 1-.98-.804l-.331-1.652a6.993 6.993 0 0 1-1.929-1.115l-1.598.54a1 1 0 0 1-1.186-.447l-1.18-2.044a1 1 0 0 1 .205-1.251l1.267-1.114a7.05 7.05 0 0 1 0-2.227L1.821 7.773a1 1 0 0 1-.206-1.25l1.18-2.045a1 1 0 0 1 1.187-.447l1.598.54A6.992 6.992 0 0 1 7.51 3.456l.33-1.652ZM10 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
+            ></path>
+          </svg>
+          <div>settings</div>
+        </button>
+
+        {#if showSettings}
+          <div transition:slide class="mt-4 w-full flex flex-col gap-2 items-start">
+            <div class="text-gray-200 uppercase text-sm font-medium tracking-wider w-full">
+              CLAN BONUS
+            </div>
+            <ModifierSelect
+              building={CoalPort}
+              onSelect={(modifier) => {
+                coalModifier = modifier;
+                saveModifiers();
+              }}
+              selected={coalModifier}
+            />
+            <ModifierSelect
+              building={SteelPort}
+              onSelect={(modifier) => {
+                steelModifier = modifier;
+                saveModifiers();
+              }}
+              selected={steelModifier}
+            />
+          </div>
+        {/if}
       </div>
     </div>
     <div
@@ -253,7 +333,12 @@
           <RewardStat
             title={resource.name}
             icon={resource.image}
-            value={rewards.rewards[resource.name].total}
+            value={applyModifier(
+              rewards.rewards[resource.name].total,
+              resource,
+              coalModifier,
+              steelModifier
+            )}
           >
             from {rewards.rewards[resource.name].ships} ships
           </RewardStat>
