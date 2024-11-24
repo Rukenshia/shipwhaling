@@ -111,6 +111,14 @@
       {}
     );
 
+    // add drops that didn't drop
+    for (const drop of container.drops) {
+      const key = `${drop.name}`;
+      if (!results[key]) {
+        results[key] = { drop, item: { name: 'None', amount: 1 }, count: 0 };
+      }
+    }
+
     // sort into array by count
     let sortedResults: { drop: ItemDrop; item: Item; count: number }[] = Object.values(
       results
