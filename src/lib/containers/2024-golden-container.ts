@@ -36,11 +36,7 @@ export const GoldenContainer: Container = {
     {
       probability: 0.09999, // FIXME: is this true?
       name: 'Ship',
-      items: [
-        { name: 'Georg Hoffman', amount: 1 },
-        { name: 'Prins van Oranje', amount: 1 },
-        { name: 'Chikuma II', amount: 1 }
-      ]
+      items: [{ name: 'Moskva', amount: 1 }]
     },
     {
       probability: 0.00001,

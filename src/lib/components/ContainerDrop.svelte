@@ -25,6 +25,9 @@
 >
   <div>
     {drop.name}
+    {#if drop.items.length === 0}
+      <span class="text-red-500"> (compensation)</span>
+    {/if}
   </div>
   <div
     class="text-gray-400 group-data-[drop-active=true]:text-white"

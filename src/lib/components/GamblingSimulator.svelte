@@ -5,16 +5,39 @@
   import BoxSelect from './BoxSelect.svelte';
   import { SantasGiftContainer } from '$lib/containers/2024-santas-gift-container';
   import { SantasMegaGiftContainer } from '$lib/containers/2024-santas-mega-gift-container';
-  import festiveToken from '$lib/assets/festive-token.png';
   import Box from './Box.svelte';
   import { GoldenContainer } from '$lib/containers/2024-golden-container';
   import ContainerDrop from './ContainerDrop.svelte';
   import { prettyAmount } from '$lib/util';
+  import type { Ship } from '$lib/ship';
 
-  let container: Container = $state(SantasGiftContainer);
+  let { shipsInPort }: { shipsInPort: Ship[] } = $props();
+
+  let selectedContainer: Container = $state(SantasGiftContainer);
+
+  // Container with ships we don't have
+  let container = $derived({
+    ...selectedContainer,
+    drops: selectedContainer.drops.map((drop) => {
+      return {
+        ...drop,
+        items: drop.items.filter((item) => {
+          return !shipsInPort.some((ship) => ship.name === item.name);
+        })
+      };
+    })
+  });
+
+  $effect(() => {
+    if (container) {
+      simulationResults = undefined;
+    }
+  });
+
   let fastRoll = $state(false);
 
   const randomElement = (arr: NodeList | any[]) => {
+    // remove any drops that include a ship we already have
     return arr[Math.floor(Math.random() * arr.length)];
   };
 
@@ -60,6 +83,10 @@
       { length: 10000 },
       () => {
         const drop = getRandomDrop();
+
+        if (drop.items.length === 0) {
+          return { drop: drop, item: { name: 'Compensation', amount: 1 } };
+        }
 
         return { drop: drop, item: randomElement(drop.items) };
       }
@@ -183,7 +210,7 @@
           selected={container}
           disabled={gambling}
           onSelected={(value: Container) => {
-            container = value;
+            selectedContainer = value;
             lastDrop = undefined;
           }}
         />
@@ -294,12 +321,16 @@
           {#if lastDrop && !gambling}
             <span class="flex items-center gap-2">
               <span> You received: </span>
-              <span class="font-sans normal-case text-emerald-400 font-medium"
-                >{#if lastDroppedItem?.amount > 1}
-                  {prettyAmount(lastDroppedItem?.amount)}
+              <span class="font-sans normal-case text-emerald-400 font-medium">
+                {#if !lastDroppedItem}
+                  <span class="text-red-500">Compensation</span>
+                {:else}
+                  {#if lastDroppedItem?.amount > 1}
+                    {prettyAmount(lastDroppedItem?.amount)}
+                  {/if}
+                  {lastDroppedItem?.name}
                 {/if}
-                {lastDroppedItem?.name}</span
-              >
+              </span>
             </span>
           {:else}
             {gambling ? 'Rolling...' : 'Click "GAMBLE" to roll'}

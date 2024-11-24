@@ -290,7 +290,13 @@
         <div>Obviously, this is not real. But you can simulate the real drop rates here.</div>
       {/snippet}
     </Title>
-    <GamblingSimulator container={SantasMegaGiftContainer} />
+    {#await $shipsInPort}
+      Loading
+    {:then shipsInPort}
+      <GamblingSimulator {shipsInPort} />
+    {:catch error}
+      <ErrorMessage>{error.message}</ErrorMessage>
+    {/await}
   </div>
 
   <div>
