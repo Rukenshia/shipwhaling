@@ -119,10 +119,11 @@
       }
     }
 
-    // sort into array by count
-    let sortedResults: { drop: ItemDrop; item: Item; count: number }[] = Object.values(
-      results
-    ).sort((a, b) => b.count - a.count);
+    // sort into array by original container drop order
+    let sortedResults = container.drops.map((drop) => {
+      const key = `${drop.name}`;
+      return results[key];
+    });
 
     gambling = false;
     simulationResults = sortedResults;
