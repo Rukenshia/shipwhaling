@@ -87,7 +87,7 @@
       simulationRolls = 1;
     }
     gambling = true;
-    console.log('simulating', simulationRolls);
+
     let results: { [key: string]: { drop: ItemDrop; item: Item; count: number } } = Array.from(
       { length: simulationRolls },
       () => {
