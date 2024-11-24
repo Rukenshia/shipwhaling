@@ -22,7 +22,7 @@
 
   const activeEvent = new Christmas2024();
 
-  let showSettings = $state(true);
+  let showSettings = $state(false);
   let coalModifier = $state(1);
   let steelModifier = $state(1);
 
