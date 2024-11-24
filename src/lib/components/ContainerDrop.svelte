@@ -45,7 +45,7 @@
   </div>
 
   {#snippet tooltip()}
-    The following {drop.type}s can be dropped:
+    You can get the following {drop.type}s:
 
     <ul class="list-disc list-inside">
       {#each drop.items as item}
