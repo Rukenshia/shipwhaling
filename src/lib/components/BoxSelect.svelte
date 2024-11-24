@@ -16,7 +16,7 @@
       header
       uppercase
       flex flex-col gap-4 items-center
-      px-4 py-2 text-base text-white backdrop-blur
+      px-4 py-2 text-sm text-white backdrop-blur
 
       outline outline-2  -outline-offset-2
       transition-all
@@ -27,7 +27,7 @@
     {disabled}
     onclick={() => select(choice.value)}
   >
-    <img src={choice.icon} alt={choice.name} class="w-8 h-8" />
+    <img src={choice.icon} alt={choice.name} class="w-12 h-12" />
     {choice.name}
   </button>
 {/each}

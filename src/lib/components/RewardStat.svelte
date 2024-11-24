@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { prettyAmount } from '$lib/util';
+
   interface Props {
     title: string;
     value: number;
@@ -15,7 +17,7 @@
   <div class="flex flex-col space-between">
     <h1 class={`block text-6xl text-white font-bold drop-shadow-2xl uppercase`}>
       <div class="flex items-center gap-2 justify-center">
-        {value}
+        {prettyAmount(value)}
         {#if icon}
           <img src={icon} class="h-14" alt="currency icon" />
         {/if}

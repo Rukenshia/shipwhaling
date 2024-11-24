@@ -1,8 +1,16 @@
 import { verifyProbabilities, type Container } from '$lib/container';
+import icon from '$lib/assets/golden-gift-container.png';
 
 export const GoldenContainer: Container = {
-  icon: '',
-  name: 'Golden Container',
+  icon,
+  name: 'Golden Gift Container',
+
+  guaranteedDropAfter: 10,
+  guaranteedDrop: {
+    probability: 1,
+    name: 'Ship (any)',
+    items: [{ name: 'Any ship the container can drop', amount: 1 }]
+  },
 
   drops: [
     {
@@ -26,7 +34,7 @@ export const GoldenContainer: Container = {
       items: [{ name: 'Steel', amount: 3000 }]
     },
     {
-      probability: 0.099, // FIXME: is this true?
+      probability: 0.09999, // FIXME: is this true?
       name: 'Ship',
       items: [
         { name: 'Georg Hoffman', amount: 1 },
@@ -35,7 +43,7 @@ export const GoldenContainer: Container = {
       ]
     },
     {
-      probability: 0.001,
+      probability: 0.00001,
       name: 'Golden Ship',
       items: [
         { name: 'Georg Hoffman Gold', amount: 1 },

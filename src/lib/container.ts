@@ -4,6 +4,9 @@ export interface Container {
   icon: any;
   name: string;
   drops: ItemDrop[];
+
+  guaranteedDropAfter?: number;
+  guaranteedDrop?: ItemDrop;
 }
 
 export interface ItemDrop {

@@ -9,6 +9,7 @@
   import Box from './Box.svelte';
   import { GoldenContainer } from '$lib/containers/2024-golden-container';
   import ContainerDrop from './ContainerDrop.svelte';
+  import { prettyAmount } from '$lib/util';
 
   let container: Container = $state(SantasGiftContainer);
   let fastRoll = $state(false);
@@ -30,10 +31,6 @@
 
     // oopsie
     console.error('No drop found', random, cum);
-  }
-
-  function prettyAmount(amount: number | undefined): string {
-    return new Intl.NumberFormat('en-US').format(amount);
   }
 
   let lastDrop: ItemDrop | undefined = $state(undefined);
@@ -135,18 +132,17 @@
         <BoxSelect
           choices={[
             {
-              //icon: SantasGiftContainer.icon,
-              icon: festiveToken,
+              icon: SantasGiftContainer.icon,
               name: SantasGiftContainer.name,
               value: SantasGiftContainer
             },
             {
-              icon: festiveToken,
+              icon: SantasMegaGiftContainer.icon,
               name: SantasMegaGiftContainer.name,
               value: SantasMegaGiftContainer
             },
             {
-              icon: festiveToken,
+              icon: GoldenContainer.icon,
               name: GoldenContainer.name,
               value: GoldenContainer
             }
@@ -212,14 +208,29 @@
       class="col-span-6 lg:col-span-5 flex flex-col justify-between gap-4 lg:border-l pl-0 lg:pl-4"
     >
       <div class="w-full flex flex-col gap-8">
-        <div class="w-full grid grid-cols-2 lg:grid-cols-3 gap-4 transition-all">
+        {#if container.guaranteedDrop}
+          <Box class="col-span-6" variant="subtle">
+            <span class="flex items-baseline gap-2">
+              <span class="text-gray-300"
+                >Guaranteed drop after {container.guaranteedDropAfter} rolls:</span
+              >
+              <span class="font-sans normal-case text-emerald-400/80 font-medium"
+                >{#if container.guaranteedDrop.items[0].amount > 1}
+                  {prettyAmount(container.guaranteedDrop.items[0].amount)}
+                {/if}
+                {container.guaranteedDrop.items[0].name}</span
+              >
+            </span>
+          </Box>
+        {/if}
+        <div class="w-full grid grid-cols-2 lg:grid-cols-3 3xl:grid-cols-6 gap-4 transition-all">
           {#each container.drops as drop (`${container.name}-${drop.name}`)}
             <ContainerDrop {drop} />
           {/each}
         </div>
       </div>
       <div class="">
-        <Box variant="dark">
+        <Box class="flex-grow justify-center xl:col-span-2" variant="dark">
           {#if lastDrop && !gambling}
             <span class="flex items-center gap-2">
               <span> You received: </span>

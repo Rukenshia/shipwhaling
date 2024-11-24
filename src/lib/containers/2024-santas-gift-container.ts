@@ -1,8 +1,16 @@
 import { verifyProbabilities, type Container } from '$lib/container';
+import icon from '$lib/assets/santas-gift-container.png';
 
 export const SantasGiftContainer: Container = {
-  icon: '',
+  icon,
   name: "Santa's Gift Container",
+
+  guaranteedDropAfter: 100,
+  guaranteedDrop: {
+    probability: 1,
+    name: 'Ship (any)',
+    items: [{ name: 'Any ship the container can drop', amount: 1 }]
+  },
 
   drops: [
     {

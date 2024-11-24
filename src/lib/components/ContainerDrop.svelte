@@ -12,6 +12,6 @@
     {drop.name}
   </div>
   <div class="text-gray-400 group-data-[drop-active=true]:text-white">
-    {Math.trunc(drop.probability * 1000) / 10}%
+    {Math.ceil(drop.probability * 100 * 1000) / 1000}%
   </div>
 </div>
