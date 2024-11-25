@@ -9,6 +9,18 @@ interface Page {
   next?: number;
 }
 
+interface VortexShip {
+  tags: string[];
+}
+
+async function getVortexShips(): Promise<{ [key: string]: VortexShip }> {
+  const vortex = (
+    await axios.get('https://vortex.worldofwarships.eu/api/encyclopedia/en/vehicles/')
+  ).data;
+
+  return vortex.data;
+}
+
 async function getShips() {
   const getPage = async (page: number): Promise<Page> => {
     const data = (
@@ -48,6 +60,18 @@ async function getShips() {
 
 (async () => {
   const ships = await getShips();
+  const vortexShips = await getVortexShips();
+
+  // update hasDemoProfile based on vortex data
+  ships.forEach((ship) => {
+    const vortexShip = vortexShips[ship.id];
+    if (vortexShip && !ship.hasDemoProfile) {
+      console.log('found vortex ship', vortexShip.tags);
+      ship.hasDemoProfile =
+        vortexShip.tags.includes('demoWithoutStats') ||
+        vortexShip.tags.includes('demoWithoutStatsPrem');
+    }
+  });
 
   fs.writeFileSync('src/lib/assets/warships.json', JSON.stringify({ data: ships }));
 })();
