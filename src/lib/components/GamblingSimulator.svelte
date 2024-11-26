@@ -253,7 +253,7 @@
         onclick={gamble}
       >
         <DiceIcon />
-        <div>gamble</div>
+        <div>roll</div>
       </button>
       <div class="flex gap-2">
         <input
@@ -358,7 +358,7 @@
               </span>
             </span>
           {:else}
-            {gambling ? 'Rolling...' : 'Click "GAMBLE" to roll'}
+            {gambling ? 'Rolling...' : 'Click "roll" first'}
           {/if}
         </Box>
       </div>
