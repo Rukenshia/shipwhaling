@@ -28,9 +28,11 @@
       ></div>
     </div>
   </div>
-  <div class="flex-grow relative z-10 min-h-screen">
-    <div class="w-full pt-32">
-      <div class="w-3/4 mx-auto">
+  <div class="flex-grow relative z-10 min-h-screen pt-32">
+    <div
+      class="grid grid-cols-1 lg:grid-cols-10 xl:grid-cols-12 gap-4 px-4 lg:px-16 text-cyan-50 mt-16"
+    >
+      <div class="col-span-1 lg:col-span-10 xl:col-span-12 mx-auto">
         <img src={whale} alt="Whale" class="h-64 mx-auto" />
 
         <h1
@@ -42,10 +44,6 @@
           Plan your Christmas Event Rewards
         </h2>
       </div>
-    </div>
-    <div
-      class="grid grid-cols-1 lg:grid-cols-10 xl:grid-cols-12 gap-4 px-4 lg:px-16 text-cyan-50 mt-16"
-    >
       <div class="col-span-1 lg:col-start-1 lg:col-span-9 xl:col-start-2 xl:col-span-10">
         {@render children?.()}
       </div>
