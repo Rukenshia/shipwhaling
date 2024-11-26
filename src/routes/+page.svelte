@@ -124,30 +124,12 @@
     return (await $shipsInPort)
       .map((ship: Ship) => ({ ...activeEvent.calculateShipReward(ship), ship }))
       .filter((reward: Reward & { ship: Ship }) => reward.amount > 0)
-      .sort((a: Reward, b: Reward) => {
-        switch (a.resource) {
-          case SantasGiftCertificate:
-            return -1;
-          case Steel:
-            switch (b.resource) {
-              case SantasGiftCertificate:
-                return 1;
-              case Steel:
-                return a.amount - b.amount;
-              default:
-                return -1;
-            }
-          case Coal:
-            switch (b.resource) {
-              case SantasGiftCertificate:
-              case Steel:
-                return 1;
-              case Coal:
-                return a.amount - b.amount;
-              default:
-                return -1;
-            }
+      .sort((a: { ship: Ship }, b: { ship: Ship }) => {
+        if (a.ship.tier === b.ship.tier) {
+          return a.ship.name.localeCompare(b.ship.name);
         }
+
+        return b.ship.tier - a.ship.tier;
       });
   });
 
