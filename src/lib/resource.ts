@@ -2,7 +2,7 @@
 import coal from './assets/coal.svg';
 import steel from './assets/steel.svg';
 import festiveToken from './assets/festive-token.png';
-import santasGiftCertificate from './assets/santas-gift-certificate.png';
+import festiveCertificate from './assets/festive-certificate.png';
 import baseXP from './assets/base-xp.svg';
 import { SantasGiftContainer } from './containers/2024-santas-gift-container';
 import { SantasMegaGiftContainer } from './containers/2024-santas-mega-gift-container';
@@ -35,9 +35,9 @@ export const FestiveTokens: Resource = {
   image: festiveToken
 };
 
-export const SantasGiftCertificate: Resource = {
-  name: "Santa's Gift Certificate",
-  image: santasGiftCertificate,
+export const FestiveCertificate: Resource = {
+  name: 'Festive Certificate',
+  image: festiveCertificate,
 
   convertsTo: [
     {

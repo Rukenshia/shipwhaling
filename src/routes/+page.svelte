@@ -13,7 +13,7 @@
 
   import bmcLogo from '$lib/assets/bmc-logo.svg';
   import { Christmas2024 } from '$lib/rewards/christmas2024';
-  import { Coal, SantasGiftCertificate, Steel, type Resource } from '$lib/resource';
+  import { Coal, FestiveCertificate, Steel, type Resource } from '$lib/resource';
   import RewardBreakdown from '$lib/components/RewardBreakdown.svelte';
   import GamblingSimulator from '$lib/components/GamblingSimulator.svelte';
   import { fade, slide } from 'svelte/transition';

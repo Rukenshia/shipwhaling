@@ -1,4 +1,4 @@
-import { Coal, SantasGiftCertificate, Steel, type Resource } from '$lib/resource';
+import { Coal, FestiveCertificate, Steel, type Resource } from '$lib/resource';
 import type { Reward } from '$lib/reward';
 import type { Ship } from '$lib/ship';
 
@@ -9,7 +9,7 @@ export class Christmas2024 {
     return ship.hasDemoProfile;
   }
 
-  public possibleResources: Resource[] = [SantasGiftCertificate, Steel, Coal];
+  public possibleResources: Resource[] = [FestiveCertificate, Steel, Coal];
 
   public calculateShipReward(ship: Ship): Reward | undefined {
     if (ship.tier < 5) {
@@ -55,7 +55,7 @@ export class Christmas2024 {
         break;
       case 10:
         reward.requiredXP = 600;
-        reward.resource = SantasGiftCertificate;
+        reward.resource = FestiveCertificate;
         reward.amount = 1;
         break;
       case 11:
