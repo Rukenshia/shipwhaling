@@ -1,5 +1,9 @@
-<script>
+<script lang="ts">
   let { rewards } = $props();
+
+  function romanized(tier: number) {
+    return ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', '⭐︎'][tier - 1];
+  }
 </script>
 
 <div class="bg-slate-950/50 backdrop-blur-sm rounded p-2 sm:p-8">
@@ -18,7 +22,7 @@
       <tbody class="divide-y divide-cyan-800 rounded text-cyan-100">
         {#each rewards as reward}
           <tr class="odd:bg-cyan-950/40">
-            <td class="pl-2">{reward.ship.name}</td>
+            <td class="pl-2">{romanized(reward.ship.tier)} {reward.ship.name}</td>
             <td>{reward.requiredXP}</td>
             <td class="text-right">
               {reward.amount}
