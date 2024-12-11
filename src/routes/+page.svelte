@@ -374,7 +374,7 @@
     {#await $shipsInPort}
       Loading
     {:then shipsInPort}
-      <div class="relative p-2">
+      <div class="p-2" class:relative={!readAndUnderstood}>
         <GamblingSimulator {shipsInPort} />
         {#if !readAndUnderstood}
           <div

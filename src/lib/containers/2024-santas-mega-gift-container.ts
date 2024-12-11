@@ -132,6 +132,7 @@ export const SantasMegaGiftContainer: Container = {
         { name: 'Gallant', amount: 1 },
         { name: 'Okhotnik', amount: 1 },
         { name: "West Virginia '44", amount: 1 },
+        { name: "Tashkent '39", amount: 1 },
         { name: 'Molotov', amount: 1 }
       ]
     },
@@ -223,7 +224,6 @@ export const SantasMegaGiftContainer: Container = {
         { name: 'Belfast', amount: 1 },
         { name: 'Colossus', amount: 1 },
         { name: 'Benham', amount: 1 },
-        { name: "Tashkent '39", amount: 1 },
         { name: 'Kamikaze', amount: 1 },
         { name: 'Kamikaze R', amount: 1 },
         { name: 'Fūjin', amount: 1 },

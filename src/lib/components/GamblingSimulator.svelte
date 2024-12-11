@@ -21,9 +21,21 @@
     drops: selectedContainer.drops.map((drop) => {
       return {
         ...drop,
-        items: drop.items.filter((item) => {
-          return !shipsInPort.some((ship) => ship.name === item.name);
-        })
+        items: [...drop.items]
+          .sort((a, b) => {
+            if (a.ship && b.ship) {
+              if (a.ship.tier === b.ship.tier) {
+                return a.name.localeCompare(b.name);
+              } else {
+                return a.ship.tier - b.ship.tier;
+              }
+            }
+
+            return 0;
+          })
+          .filter((item) => {
+            return !shipsInPort.some((ship) => ship.name === item.name);
+          })
       };
     })
   });
@@ -31,7 +43,6 @@
   let fastRoll = $state(false);
 
   const randomElement = (arr: NodeList | any[]) => {
-    // remove any drops that include a ship we already have
     return arr[Math.floor(Math.random() * arr.length)];
   };
 
@@ -318,7 +329,7 @@
           <Box class="col-span-6" variant="subtle">
             <span class="flex items-baseline gap-2">
               <span class="text-gray-300"
-                >Guaranteed drop after {container.guaranteedDropAfter} rolls:</span
+                >Guaranteed drop on the {container.guaranteedDropAfter}th roll:</span
               >
               <span class="font-sans normal-case text-emerald-400/80 font-medium"
                 >{#if container.guaranteedDrop.items[0].amount > 1}

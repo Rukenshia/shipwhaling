@@ -38,9 +38,11 @@ export const GoldenContainer: Container = {
       items: [{ name: 'Steel', amount: 3000 }]
     },
     {
-      probability: 0.09999, // FIXME: is this true?
+      probability: 0.09999,
       name: 'Ship',
       type: 'ship',
+      conditionalProbability: 0,
+      condition: 'If you have all ships from this list, you will instead receive a Golden Ship',
       items: [
         { name: 'Georg Hoffmann', amount: 1 },
         { name: 'Prins van Oranje', amount: 1 },
@@ -51,6 +53,9 @@ export const GoldenContainer: Container = {
       probability: 0.00001,
       name: 'Golden Ship',
       type: 'item', // HACK: because they don't exist yet
+      conditionalProbability: 0.1,
+      condition:
+        'If you have all ships from the normal Ship list, you will instead receive a Golden Ship',
       items: [
         { name: 'Georg Hoffman Gold', amount: 1 },
         { name: 'Prins van Oranje Gold', amount: 1 },

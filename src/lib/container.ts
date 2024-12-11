@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import warships from './assets/warships.json';
+import type { Ship } from './ship';
 
 export interface Container {
   icon: any;
@@ -13,6 +14,9 @@ export interface Container {
 export interface ItemDrop {
   probability: number;
 
+  conditionalProbability?: number;
+  condition?: string;
+
   name: string;
   items: Item[];
 
@@ -22,6 +26,8 @@ export interface ItemDrop {
 export interface Item {
   name: string;
   amount: number;
+
+  ship?: Ship;
 }
 
 export function verifyContainer(container: Container) {
@@ -42,4 +48,12 @@ export function verifyContainer(container: Container) {
   if (unknownShips.length > 0) {
     throw new Error(`Unknown ships in container ${container.name}: ${unknownShips.join(', ')}`);
   }
+
+  // map ships to their data
+  container.drops
+    .filter((drop) => drop.type === 'ship')
+    .flatMap((drop) => drop.items)
+    .forEach((item) => {
+      item.ship = warships.data.find((ship) => ship.name === item.name);
+    });
 }

@@ -1,9 +1,6 @@
 import { verifyContainer, type Container } from '$lib/container';
 import icon from '$lib/assets/santas-gift-container.png';
 
-// Rio de Janeiro, Jupiter, Orion '44, Xin Zhong Guo '14, Bearn, F. Ferruccio, Abruzzi, W.Virginia '44, Petr Bagration, Sun Yat-sen, Karl XIV Johan, Álvaro de Bazán, Cesare, Tashkent '39
-//
-
 export const SantasGiftContainer: Container = {
   icon,
   name: "Santa's Gift Container",
@@ -99,6 +96,7 @@ export const SantasGiftContainer: Container = {
       name: 'Ship (okay)',
       type: 'ship',
       items: [
+        { name: "Tashkent '39", amount: 1 },
         { name: 'Ise', amount: 1 },
         { name: 'Weimar', amount: 1 },
         { name: 'Hill', amount: 1 },
@@ -245,7 +243,6 @@ export const SantasGiftContainer: Container = {
         { name: 'Belfast', amount: 1 },
         { name: 'Colossus', amount: 1 },
         { name: 'Benham', amount: 1 },
-        { name: "Tashkent '39", amount: 1 },
         { name: 'Kamikaze', amount: 1 },
         { name: 'Kamikaze R', amount: 1 },
         { name: 'Fūjin', amount: 1 },
