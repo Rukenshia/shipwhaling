@@ -9,11 +9,19 @@ export class Anniversary2025 {
     return ship.hasDemoProfile;
   }
 
+  private isExperimentalShip(ship: Ship): boolean {
+    return ship.isExperimental;
+  }
+
   public possibleResources: Resource[] = [FestiveTokens, Steel];
 
   public calculateShipReward(ship: Ship): Reward | undefined {
     if (ship.tier < 5) {
       return; // No rewards for ships below Tier V
+    }
+
+    if (this.isExperimentalShip(ship)) {
+      return;
     }
 
     if (this.isTestShip(ship)) {

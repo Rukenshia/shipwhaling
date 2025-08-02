@@ -69,7 +69,8 @@ async function getShips() {
       console.log('found vortex ship', vortexShip.tags);
       ship.hasDemoProfile =
         vortexShip.tags.includes('demoWithoutStats') ||
-        vortexShip.tags.includes('demoWithoutStatsPrem');
+        vortexShip.tags.includes('demoWithoutStatsPrem') ||
+        vortexShip.tags.includes('experimental');
     }
   });
 
