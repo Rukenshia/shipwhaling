@@ -14,6 +14,7 @@
   import bmcLogo from '$lib/assets/bmc-logo.svg';
   import { Coal, Steel, type Resource } from '$lib/resource';
   import RewardBreakdown from '$lib/components/RewardBreakdown.svelte';
+  import BattleCalculator from '$lib/components/BattleCalculator.svelte';
   import { slide } from 'svelte/transition';
   import ModifierSelect from '$lib/components/ModifierSelect.svelte';
   import { CoalPort, SteelPort } from '$lib/modifiers';
@@ -349,6 +350,26 @@
         <ErrorMessage>{error.message}</ErrorMessage>
       {/await}
     </div>
+  </div>
+
+  <div>
+    <Title size="text-4xl sm:text-6xl" align="left">
+      Battle Calculator
+
+      {#snippet subtitle()}
+        <div>
+          Calculate how many battles you need to complete all missions based on your average Base
+          XP.
+        </div>
+      {/snippet}
+    </Title>
+    {#await $shipsInPort}
+      Loading
+    {:then shipsInPort}
+      <BattleCalculator {activeEvent} {shipsInPort} />
+    {:catch error}
+      <ErrorMessage>{error.message}</ErrorMessage>
+    {/await}
   </div>
 
   <div>

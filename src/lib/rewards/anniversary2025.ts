@@ -22,65 +22,12 @@ export class Anniversary2025 {
 
     const reward = {
       resource: FestiveTokens,
-      requirement: {
-        type: BaseXP,
-        amount: 0
-      },
+      requiredXP: this.getBaseXPRequirement(ship.tier),
       amount: 0
     };
 
-    // Set Base XP required
-    switch (ship.tier) {
-      case 5:
-        reward.requirement.amount = 200;
-        break;
-      case 6:
-        reward.requirement.amount = 250;
-        break;
-      case 7:
-        reward.requirement.amount = 300;
-        break;
-      case 8:
-        reward.requirement.amount = 400;
-        break;
-      case 9:
-        reward.requirement.amount = 500;
-        break;
-      case 10:
-        reward.requirement.amount = 600;
-        break;
-      default:
-        reward.requirement.amount = 600; // Superships
-    }
-
     // Set Festive Tokens or Steel reward
-    if (ship.tier > 10) {
-      reward.resource = Steel;
-      reward.amount = 200;
-    } else {
-      switch (ship.tier) {
-        case 5:
-          reward.amount = 25;
-          break;
-        case 6:
-          reward.amount = 35;
-          break;
-        case 7:
-          reward.amount = 50;
-          break;
-        case 8:
-          reward.amount = 75;
-          break;
-        case 9:
-          reward.amount = 100;
-          break;
-        case 10:
-          reward.amount = 125;
-          break;
-      }
-    }
-
-    return reward;
+    return this.getRewardForTier(ship.tier);
   }
 
   public getMaxAdditionalRewards(shipsInPort: number): number {
@@ -91,5 +38,51 @@ export class Anniversary2025 {
     if (shipsInPort < 400) return 5;
     if (shipsInPort < 600) return 6;
     return 7;
+  }
+
+  public getRewardForTier(tier: number): Reward | undefined {
+    if (tier < 5) return; // No rewards for ships below Tier V
+
+    const requiredXP = this.getBaseXPRequirement(tier);
+
+    switch (tier) {
+      case 1:
+      case 2:
+      case 3:
+      case 4:
+        return { resource: BaseXP, requiredXP, amount: 0 };
+      case 5:
+        return { resource: FestiveTokens, requiredXP, amount: 25 };
+      case 6:
+        return { resource: FestiveTokens, requiredXP, amount: 35 };
+      case 7:
+        return { resource: FestiveTokens, requiredXP, amount: 50 };
+      case 8:
+        return { resource: FestiveTokens, requiredXP, amount: 75 };
+      case 9:
+        return { resource: FestiveTokens, requiredXP, amount: 100 };
+      case 10:
+        return { resource: FestiveTokens, requiredXP, amount: 125 };
+      default:
+        return { resource: Steel, requiredXP, amount: 200 }; // Superships
+    }
+
+    return undefined; // Fallback
+  }
+
+  public getBaseXPRequirement(tier: number): number {
+    switch (tier) {
+      case 5: return 200;
+      case 6: return 250;
+      case 7: return 300;
+      case 8: return 400;
+      case 9: return 500;
+      case 10: return 600;
+      default: return 600; // Superships
+    }
+  }
+
+  public getAdditionalRewardXPRequirement(): number {
+    return 1000;
   }
 }
