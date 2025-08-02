@@ -52,7 +52,6 @@ class User {
       }
     });
 
-    console.log(response.data);
   }
 
   public async getShipsInPort() {

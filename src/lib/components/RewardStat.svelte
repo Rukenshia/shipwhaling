@@ -1,5 +1,6 @@
 <script lang="ts">
   import { prettyAmount } from '$lib/util';
+  import Box from './Box.svelte';
 
   interface Props {
     title: string;
@@ -11,32 +12,25 @@
   let { title, value, icon = undefined, children }: Props = $props();
 </script>
 
-<div
-  class="bg-slate-950/50 backdrop-blur-sm rounded px-8 py-4 flex items-center text-center justify-around"
->
-  <div class="flex flex-col space-between">
-    <h1 class={`block text-6xl text-white font-bold drop-shadow-2xl uppercase`}>
-      <div class="flex items-center gap-2 justify-center">
+<Box variant="dark" class="backdrop-blur transition-all">
+  <div class="flex flex-col items-center text-center">
+    <div class="flex items-center gap-3 justify-center">
+      <div class="text-4xl lg:text-5xl text-white font-bold font-sans">
         {prettyAmount(value)}
-        {#if icon}
-          <img src={icon} class="h-14" alt="currency icon" />
-        {/if}
       </div>
-    </h1>
-
-    <h2 class={`block flex-grow text-cyan-50/80 drop-shadow-2xl flex flex-col items-center`}>
-      <div class="text-sm sm:text-base lg:text-lg leading-4">
-        {title}
-      </div>
-
-      <!-- if slot used -->
-      {#if children}
-        <div class="text-xs leading-6 leading-1 h-6">
-          {#if children}{@render children()}{:else}
-            <!-- Default content when slot is not used -->
-          {/if}
-        </div>
+      {#if icon}
+        <img src={icon} class="h-8 lg:h-12" alt="currency icon" />
       {/if}
-    </h2>
+    </div>
+
+    <div class="uppercase mt-2 text-base text-gray-300 font-medium tracking-wide">
+      {title}
+    </div>
+
+    {#if children}
+      <div class="text-xs text-gray-400">
+        {@render children()}
+      </div>
+    {/if}
   </div>
-</div>
+</Box>

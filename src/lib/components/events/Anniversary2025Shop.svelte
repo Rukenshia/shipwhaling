@@ -114,11 +114,6 @@
   let remainingTokens = $derived(totalTokens - totalCost);
   let boxVariant = $derived(remainingTokens < 0 ? 'error' : 'dark');
 
-  $effect(() => {
-    console.log(remainingTokens, 'remaining tokens');
-    console.log(boxVariant, 'box variant');
-  });
-
   let remainingTokensClass = $derived(
     remainingTokens < 0
       ? 'text-red-400'
@@ -254,30 +249,35 @@
         </div>
 
         <!-- Cart summary sidebar -->
-        <div class="xl:col-span-1">
+        <div class="xl:col-span-full">
           <div class="sticky top-4">
             <Box
+              uppercase
               variant={boxVariant}
               class="backdrop-blur-md border border-slate-500/3 transition-colors"
             >
               <div class="py-3 text-center">
                 <!-- Cart total -->
-                <div class="flex gap-4 items-baseline">
-                  <div class="text-sm text-gray-300 uppercase tracking-wide font-medium header">
+                <div class="flex gap-4 items-baseline flex-col md:flex-row">
+                  <div
+                    class="hidden md:block text-sm text-gray-300 uppercase tracking-wide font-medium header"
+                  >
                     Spending
                   </div>
                   <div class="flex items-baseline justify-center gap-2">
                     <div class="text-3xl font-sans font-bold text-white">
                       {prettyAmount(totalCost)}
                     </div>
-                    <div class="text-sm text-gray-400">tokens with</div>
+                    <div class="text-sm text-gray-400">
+                      tokens <span class="hidden md:inline">with</span>
+                    </div>
                   </div>
                   <div class="flex items-baseline justify-center gap-1">
                     <div class="text-3xl font-sans font-bold {remainingTokensClass}">
                       {prettyAmount(Math.abs(remainingTokens))}
                     </div>
                     <div class="text-xs text-gray-400">
-                      {remainingTokens >= 0 ? 'Remaining' : 'Overspent'}
+                      {remainingTokens >= 0 ? 'remaining' : 'overspent'}
                     </div>
                   </div>
                 </div>

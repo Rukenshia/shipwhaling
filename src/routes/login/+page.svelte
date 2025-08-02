@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Box from '$lib/components/Box.svelte';
   import Faq from '$lib/components/FAQ.svelte';
   import Title from '$lib/components/Title.svelte';
   import { Realm } from '$lib/store';
@@ -12,23 +13,23 @@
     {
       name: Realm.EU,
       label: 'EU',
-      colorClasses: 'bg-cyan-500/40 hover:bg-cyan-500/60'
+      colorClasses: 'bg-cyan-500/40 hover:bg-cyan-500/60 outline-cyan-200/20'
     },
     {
       name: Realm.NA,
       label: 'NA',
-      colorClasses: 'bg-rose-700/50 hover:bg-rose-700/70'
+      colorClasses: 'bg-rose-700/50 hover:bg-rose-700/70 outline-rose-200/20'
     },
     {
       name: Realm.ASIA,
       label: 'ASIA',
-      colorClasses: 'bg-amber-600/60 hover:bg-amber-600/80'
+      colorClasses: 'bg-amber-600/60 hover:bg-amber-600/80 outline-amber-200/20'
     }
   ];
 </script>
 
-<div class="space-y-8">
-  <div class="max-w-xl mx-auto rounded p-8 bg-slate-950/20 shadow-inner inset-0">
+<div class="space-y-8 max-w-2xl mx-auto">
+  <Box variant="dark">
     <Title>
       Select a Server to log in
 
@@ -37,19 +38,19 @@
       {/snippet}
     </Title>
 
-    <div class="grid grid-cols-3 gap-8 items-center justify-center items-stretch">
+    <div class="grid grid-cols-3 gap-8 items-center justify-center">
       {#each realms as realm}
         <button
-          class={`p-8 aspect-square rounded-lg text-white font-bold transition-colors duration-300 ease-in-out ${realm.colorClasses}`}
+          class={`p-8 aspect-square outline outline-2 -outline-offset-2 text-white font-bold transition-colors duration-300 ease-in-out ${realm.colorClasses}`}
           onclick={() => redirectToLogin(realm.name)}
         >
           {realm.label}
         </button>
       {/each}
     </div>
-  </div>
+  </Box>
 
-  <div class="max-w-xl mx-auto rounded p-8 bg-slate-950/20 shadow-inner inset-0 space-y-8">
+  <Box variant="dark">
     <div>
       <Title align="left">About</Title>
 
@@ -73,5 +74,5 @@
 
       <Faq />
     </div>
-  </div>
+  </Box>
 </div>

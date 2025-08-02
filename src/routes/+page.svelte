@@ -20,6 +20,7 @@
   import { CoalPort, SteelPort } from '$lib/modifiers';
   import { Anniversary2025 } from '$lib/rewards/anniversary2025';
   import Anniversary2025Shop from '$lib/components/events/Anniversary2025Shop.svelte';
+  import Box from '$lib/components/Box.svelte';
 
   const activeEvent = new Anniversary2025();
 
@@ -36,9 +37,6 @@
     // load modifiers
     coalModifier = parseFloat(localStorage.getItem('coalModifier') || '1');
     steelModifier = parseFloat(localStorage.getItem('steelModifier') || '1');
-
-    console.log('coalModifier', coalModifier);
-    console.log('steelModifier', steelModifier);
 
     // try to init user from local storage
     const storedUser = localStorage.getItem('user');
@@ -58,9 +56,7 @@
       window.location.href = '/login';
     }
 
-    const unsubscribe = user.subscribe(($user) => {
-      console.log('user', $user);
-    });
+    const unsubscribe = user.subscribe(($user) => {});
 
     return () => {
       unsubscribe();
@@ -199,7 +195,6 @@
 
       return acc;
     }, {});
-    console.log(res);
 
     return res;
   });
@@ -419,90 +414,95 @@
   <div class="space-y-8">
     <div>
       <Title size="text-4xl sm:text-6xl" align="left">About</Title>
-      <div class="bg-slate-950/50 backdrop-blur-sm rounded-lg p-8 space-y-6 text-cyan-100">
-        <p class="leading-relaxed">
-          On this website, you can plan your Event rewards. It uses the ships you currently have in
-          your port to calculate available rewards.
-        </p>
-        <div class="space-y-4">
+      <Box variant="dark" class="pb-8">
+        <div>
           <p class="leading-relaxed">
-            This tool was created by <strong class="text-cyan-300">Rukenshia</strong> on the EU
-            Server. If you have any questions, feedback, or want to thank me, you can contact me on
-            Discord at
-            <strong class="text-cyan-300">Rukenshia</strong>
-            or email me at
-            <a
-              href="mailto:svc-shipwhaling@ruken.pw"
-              class="text-cyan-300 hover:text-cyan-100 underline transition-colors duration-200"
-            >
-              svc-shipwhaling@ruken.pw
-            </a>.
+            On this website, you can plan your Event rewards. It uses the ships you currently have
+            in your port to calculate available rewards.
           </p>
-          <div class="flex items-center space-x-4">
-            <span class="text-cyan-200">If you really loved using this website, you can also</span>
+          <div class="space-y-4">
+            <p class="leading-relaxed">
+              This tool was created by <strong class="text-cyan-300">Rukenshia</strong> on the EU
+              Server. If you have any questions, feedback, or just want to say hi, you can contact
+              me on Discord at
+              <strong class="text-cyan-300">Rukenshia</strong>
+              or email me at
+              <a
+                href="mailto:svc-shipwhaling@ruken.pw"
+                class="text-cyan-300 hover:text-cyan-100 underline transition-colors duration-200"
+              >
+                svc-shipwhaling@ruken.pw
+              </a>.
+            </p>
+            <div class="flex items-center space-x-4 flex-wrap">
+              <span class="text-cyan-200">If you really loved using this website, you can also</span
+              >
+              <a
+                href="https://buymeacoffee.com/rukenshia"
+                target="_blank"
+                class="inline-flex items-center text-sm px-4 py-1 bg-cyan-600 hover:bg-cyan-500 rounded-lg text-cyan-100 transition-colors duration-200 shadow-md hover:shadow-lg"
+              >
+                <img src={bmcLogo} alt="Buy me a coffee" class="w-5 h-5 mr-2" />
+                <span class="font-medium">Buy me a coffee</span>
+              </a>
+            </div>
+            <span class="text-cyan-200">Any support is greatly appreciated!</span>
+          </div>
+
+          <div class="pt-4">
+            <Title size="text-4xl" align="left">FAQ</Title>
+            <Faq />
+          </div>
+
+          <div class="pt-4">
+            <Title size="text-4xl" align="left">Shameless Advertisement</Title>
+
             <a
-              href="https://buymeacoffee.com/rukenshia"
+              href="https://shipvote.in.fkn.space"
               target="_blank"
-              class="inline-flex items-center text-sm px-4 py-1 bg-cyan-600 hover:bg-cyan-500 rounded-lg text-cyan-100 transition-colors duration-200 shadow-md hover:shadow-lg"
+              class="block
+            bg-purple-900/60 hover:bg-purple-900/80 transition-colors duration-200
+            border-2 border-purple-400/20
+            backdrop-blur px-8 py-4 text-purple-50 flex gap-8 items-center"
             >
-              <img src={bmcLogo} alt="Buy me a coffee" class="w-5 h-5 mr-2" />
-              <span class="font-medium">Buy me a coffee</span>
+              <svg
+                class="h-16 w-16 flex-shrink-0"
+                xmlns="http://www.w3.org/2000/svg"
+                xml:space="preserve"
+                id="Layer_1"
+                x="0"
+                y="0"
+                style="enable-background:new 0 0 2400 2800"
+                version="1.1"
+                viewBox="0 0 2400 2800"
+                ><style>
+                  .st1 {
+                    fill: #9146ff;
+                  }
+                </style><path
+                  d="m2200 1300-400 400h-400l-350 350v-350H600V200h1600z"
+                  style="fill:#fff"
+                /><g id="Layer_1-2"
+                  ><path
+                    d="M500 0 0 500v1800h600v500l500-500h400l900-900V0H500zm1700 1300-400 400h-400l-350 350v-350H600V200h1600v1100z"
+                    class="st1"
+                  /><path d="M1700 550h200v600h-200zM1150 550h200v600h-200z" class="st1" /></g
+                ></svg
+              >
+              <div class="space-y-2">
+                <div class="text-lg font-semibold">
+                  Want to spice up your World of Warships stream?
+                </div>
+                <div class="text-base">
+                  Check out the WoWS Shipvote extension for Twitch. Customise your votes and let
+                  your viewers decide which ship you should play next. Needs to be installed by the
+                  streamer.
+                </div>
+              </div>
             </a>
           </div>
         </div>
-
-        <div class="pt-4">
-          <Title size="text-4xl" align="left">FAQ</Title>
-          <Faq />
-        </div>
-
-        <div class="pt-4">
-          <Title size="text-4xl" align="left">Shameless Advertisement</Title>
-
-          <a
-            href="https://shipvote.in.fkn.space"
-            target="_blank"
-            class="block
-            bg-purple-500/30 hover:bg-purple-500/50 transition-colors duration-200
-            backdrop-blur px-8 py-4 text-purple-50 flex gap-8 items-center"
-          >
-            <svg
-              class="h-16 w-16 flex-shrink-0"
-              xmlns="http://www.w3.org/2000/svg"
-              xml:space="preserve"
-              id="Layer_1"
-              x="0"
-              y="0"
-              style="enable-background:new 0 0 2400 2800"
-              version="1.1"
-              viewBox="0 0 2400 2800"
-              ><style>
-                .st1 {
-                  fill: #9146ff;
-                }
-              </style><path
-                d="m2200 1300-400 400h-400l-350 350v-350H600V200h1600z"
-                style="fill:#fff"
-              /><g id="Layer_1-2"
-                ><path
-                  d="M500 0 0 500v1800h600v500l500-500h400l900-900V0H500zm1700 1300-400 400h-400l-350 350v-350H600V200h1600v1100z"
-                  class="st1"
-                /><path d="M1700 550h200v600h-200zM1150 550h200v600h-200z" class="st1" /></g
-              ></svg
-            >
-            <div class="space-y-2">
-              <div class="text-lg font-semibold">
-                Want to spice up your World of Warships stream?
-              </div>
-              <div class="text-base">
-                Check out the WoWS Shipvote extension for Twitch. Customise your votes and let your
-                viewers decide which ship you should play next. Needs to be installed by the
-                streamer.
-              </div>
-            </div>
-          </a>
-        </div>
-      </div>
+      </Box>
     </div>
   </div>
 </div>

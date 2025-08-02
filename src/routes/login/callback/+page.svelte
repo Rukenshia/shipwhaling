@@ -19,14 +19,6 @@
     const nickname = urlParams.get('nickname');
     const account_id = urlParams.get('account_id');
 
-    console.log({
-      realm,
-      accessToken,
-      expiresIn: expiresAt,
-      nickname,
-      account_id
-    });
-
     if (realm && accessToken && expiresAt && nickname && account_id) {
       login({
         realm: realm as Realm,
