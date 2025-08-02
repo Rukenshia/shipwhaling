@@ -157,7 +157,7 @@
           <div class="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-4">
             {#each selectedItems as item}
               <Box variant="dark" class="backdrop-blur hover:bg-slate-800/60 transition-all">
-                <div class="flex flex-col gap-3">
+                <div class="w-full justify-between flex md:flex-col gap-4">
                   <!-- Item header -->
                   <div class="flex items-start gap-3">
                     {#if item.icon}
@@ -177,42 +177,46 @@
                   </div>
 
                   <!-- Quantity controls -->
-                  <div class="flex items-center gap-2">
-                    <button
-                      onclick={() => updateQuantity(item.name, (cart[item.name] || 0) - 1)}
-                      disabled={!cart[item.name] || cart[item.name] === 0}
-                      class="w-7 h-7 bg-slate-600/50 hover:bg-slate-500/60 text-white backdrop-blur border border-slate-500/40 hover:border-slate-400/60 disabled:bg-slate-700/30 disabled:text-slate-500 disabled:cursor-not-allowed disabled:border-slate-600/20 transition-all flex items-center justify-center text-sm font-bold"
-                    >
-                      −
-                    </button>
+                  <div class="flex flex-col md:flex-row items-end md:items-center gap-2">
+                    <div class="flex items-center gap-2">
+                      <button
+                        onclick={() => updateQuantity(item.name, (cart[item.name] || 0) - 1)}
+                        disabled={!cart[item.name] || cart[item.name] === 0}
+                        class="w-7 h-7 bg-slate-600/50 hover:bg-slate-500/60 text-white backdrop-blur border border-slate-500/40 hover:border-slate-400/60 disabled:bg-slate-700/30 disabled:text-slate-500 disabled:cursor-not-allowed disabled:border-slate-600/20 transition-all flex items-center justify-center text-sm font-bold"
+                      >
+                        −
+                      </button>
 
-                    <input
-                      type="number"
-                      bind:value={cart[item.name]}
-                      oninput={(e) =>
-                        updateQuantity(
-                          item.name,
-                          parseInt((e.target as HTMLInputElement)?.value) || 0
-                        )}
-                      min="0"
-                      max={item.limit || undefined}
-                      class="flex-grow bg-slate-700/50 text-white backdrop-blur border border-slate-500/40 px-2 py-1 text-center font-sans focus:border-emerald-400/60 focus:outline-none transition-colors text-sm"
-                    />
+                      <input
+                        type="number"
+                        bind:value={cart[item.name]}
+                        oninput={(e) =>
+                          updateQuantity(
+                            item.name,
+                            parseInt((e.target as HTMLInputElement)?.value) || 0
+                          )}
+                        min="0"
+                        max={item.limit || undefined}
+                        class="w-8 md:w-16 flex-grow bg-slate-700/50 text-white backdrop-blur border border-slate-500/40 px-2 py-1 text-center font-sans focus:border-emerald-400/60 focus:outline-none transition-colors text-sm"
+                      />
 
-                    <button
-                      onclick={() => updateQuantity(item.name, (cart[item.name] || 0) + 1)}
-                      disabled={!!(item.limit && cart[item.name] >= item.limit)}
-                      class="w-7 h-7 bg-emerald-600/50 hover:bg-emerald-500/60 text-white backdrop-blur border border-emerald-500/40 hover:border-emerald-400/60 disabled:bg-slate-700/30 disabled:text-slate-500 disabled:cursor-not-allowed disabled:border-slate-600/20 transition-all flex items-center justify-center text-sm font-bold"
-                    >
-                      +
-                    </button>
-                  </div>
-
-                  {#if cart[item.name] > 0}
-                    <div class="text-xs text-emerald-400 font-medium font-sans text-center">
-                      Subtotal: {prettyAmount((cart[item.name] || 0) * item.cost)}
+                      <button
+                        onclick={() => updateQuantity(item.name, (cart[item.name] || 0) + 1)}
+                        disabled={!!(item.limit && cart[item.name] >= item.limit)}
+                        class="w-7 h-7 bg-emerald-600/50 hover:bg-emerald-500/60 text-white backdrop-blur border border-emerald-500/40 hover:border-emerald-400/60 disabled:bg-slate-700/30 disabled:text-slate-500 disabled:cursor-not-allowed disabled:border-slate-600/20 transition-all flex items-center justify-center text-sm font-bold"
+                      >
+                        +
+                      </button>
                     </div>
-                  {/if}
+
+                    {#if cart[item.name] > 0}
+                      <div
+                        class="w-full text-xs text-emerald-400 font-medium font-sans text-center"
+                      >
+                        Subtotal: {prettyAmount((cart[item.name] || 0) * item.cost)}
+                      </div>
+                    {/if}
+                  </div>
                 </div>
               </Box>
             {/each}
