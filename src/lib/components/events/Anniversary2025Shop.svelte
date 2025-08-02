@@ -25,7 +25,6 @@
     {
       name: '"This is Fine" enemy destruction effect',
       cost: 2000,
-      limit: 1,
       category: 'Special Items'
     },
 
