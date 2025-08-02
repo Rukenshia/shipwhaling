@@ -182,10 +182,118 @@
     <!-- Right side with items -->
     <div class="col-span-6 lg:col-span-5 flex flex-col gap-6 lg:border-l pl-0 lg:pl-6">
       <div class="w-full grid grid-cols-1 xl:grid-cols-1 gap-6">
+        <!-- Cart summary sidebar -->
+        <div class="xl:col-span-full">
+          <div class="sticky top-4">
+            <Box
+              uppercase
+              variant={boxVariant}
+              class="backdrop-blur-md border border-slate-500/3 transition-colors"
+            >
+              <div class="md:py-3 text-right">
+                <!-- Cart total -->
+                <div class="flex w-full gap-2 md:gap-4 items-baseline">
+                  <div class="text-sm text-gray-300 uppercase tracking-wide font-medium header">
+                    Spending
+                  </div>
+                  <div class="flex items-baseline justify-center gap-2">
+                    <div class="md:text-3xl font-sans font-bold text-white">
+                      {prettyAmount(totalCost)}
+                    </div>
+                    <div class="text-sm text-gray-400">
+                      <span class="font-medium tracking-wide">tokens</span>
+                    </div>
+                  </div>
+                  <div class="text-xs flex items-baseline justify-center gap-1">
+                    <div class="font-sans font-bold {remainingTokensClass}">
+                      {prettyAmount(Math.abs(remainingTokens))}
+                    </div>
+                    <div class="text-xs text-gray-400">
+                      {remainingTokens >= 0 ? 'remaining' : 'too many'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Box>
+          </div>
+        </div>
+
         <!-- Items section -->
         <div class="w-full flex flex-col gap-6">
           <!-- Items grid -->
           <div class="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-4">
+            {#each selectedItems as item (item.name)}
+              <div>
+                <Box variant="dark" class="backdrop-blur hover:bg-slate-800/60 transition-all">
+                  <div class="w-full justify-between flex md:flex-col gap-4">
+                    <!-- Item header -->
+                    <div class="flex items-start gap-3">
+                      {#if item.icon}
+                        <img src={item.icon} alt={item.name} class="w-6 h-6 flex-shrink-0" />
+                      {/if}
+                      <div class="flex-grow min-w-0">
+                        <h4 class="text-white font-medium text-sm leading-tight break-words">
+                          {#if item.title}
+                            {@html item.title()}
+                          {:else}
+                            {item.name}
+                          {/if}
+                        </h4>
+                        <div class="text-xs text-gray-400 mt-1">
+                          {prettyAmount(item.cost)} tokens
+                          {#if item.limit}
+                            • Limit: {item.limit}
+                          {/if}
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Quantity controls -->
+                    <div class="flex flex-col md:flex-row items-end md:items-center gap-2">
+                      <div class="flex items-center gap-2">
+                        <button
+                          onclick={() => updateQuantity(item.name, (cart[item.name] || 0) - 1)}
+                          disabled={!cart[item.name] || cart[item.name] === 0}
+                          class="w-7 h-7 bg-slate-600/50 hover:bg-slate-500/60 text-white backdrop-blur border border-slate-500/40 hover:border-slate-400/60 disabled:bg-slate-700/30 disabled:text-slate-500 disabled:cursor-not-allowed disabled:border-slate-600/20 transition-all flex items-center justify-center text-sm font-bold"
+                        >
+                          −
+                        </button>
+
+                        <input
+                          type="number"
+                          bind:value={cart[item.name]}
+                          oninput={(e) =>
+                            updateQuantity(
+                              item.name,
+                              parseInt((e.target as HTMLInputElement)?.value) || 0
+                            )}
+                          min="0"
+                          max={item.limit || undefined}
+                          class="w-8 md:w-16 flex-grow bg-slate-700/50 text-white backdrop-blur border border-slate-500/40 px-2 py-1 text-center font-sans focus:border-emerald-400/60 focus:outline-none transition-colors text-sm"
+                        />
+
+                        <button
+                          onclick={() => updateQuantity(item.name, (cart[item.name] || 0) + 1)}
+                          disabled={!!(item.limit && cart[item.name] >= item.limit)}
+                          class="w-7 h-7 bg-emerald-600/50 hover:bg-emerald-500/60 text-white backdrop-blur border border-emerald-500/40 hover:border-emerald-400/60 disabled:bg-slate-700/30 disabled:text-slate-500 disabled:cursor-not-allowed disabled:border-slate-600/20 transition-all flex items-center justify-center text-sm font-bold"
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      {#if cart[item.name] > 0}
+                        <div
+                          class="w-full text-xs text-emerald-400 font-medium font-sans text-center"
+                        >
+                          Subtotal: {prettyAmount((cart[item.name] || 0) * item.cost)}
+                        </div>
+                      {/if}
+                    </div>
+                  </div>
+                </Box>
+              </div>
+            {/each}
+
             {#if selectedCategory === 'Containers'}
               <a
                 href="https://worldofwarships.eu/en/content/contents-and-drop-rates-of-containers/"
@@ -215,113 +323,6 @@
                 </Box>
               </a>
             {/if}
-            {#each selectedItems as item}
-              <Box variant="dark" class="backdrop-blur hover:bg-slate-800/60 transition-all">
-                <div class="w-full justify-between flex md:flex-col gap-4">
-                  <!-- Item header -->
-                  <div class="flex items-start gap-3">
-                    {#if item.icon}
-                      <img src={item.icon} alt={item.name} class="w-6 h-6 flex-shrink-0" />
-                    {/if}
-                    <div class="flex-grow min-w-0">
-                      <h4 class="text-white font-medium text-sm leading-tight break-words">
-                        {#if item.title}
-                          {@html item.title()}
-                        {:else}
-                          {item.name}
-                        {/if}
-                      </h4>
-                      <div class="text-xs text-gray-400 mt-1">
-                        {prettyAmount(item.cost)} tokens
-                        {#if item.limit}
-                          • Limit: {item.limit}
-                        {/if}
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Quantity controls -->
-                  <div class="flex flex-col md:flex-row items-end md:items-center gap-2">
-                    <div class="flex items-center gap-2">
-                      <button
-                        onclick={() => updateQuantity(item.name, (cart[item.name] || 0) - 1)}
-                        disabled={!cart[item.name] || cart[item.name] === 0}
-                        class="w-7 h-7 bg-slate-600/50 hover:bg-slate-500/60 text-white backdrop-blur border border-slate-500/40 hover:border-slate-400/60 disabled:bg-slate-700/30 disabled:text-slate-500 disabled:cursor-not-allowed disabled:border-slate-600/20 transition-all flex items-center justify-center text-sm font-bold"
-                      >
-                        −
-                      </button>
-
-                      <input
-                        type="number"
-                        bind:value={cart[item.name]}
-                        oninput={(e) =>
-                          updateQuantity(
-                            item.name,
-                            parseInt((e.target as HTMLInputElement)?.value) || 0
-                          )}
-                        min="0"
-                        max={item.limit || undefined}
-                        class="w-8 md:w-16 flex-grow bg-slate-700/50 text-white backdrop-blur border border-slate-500/40 px-2 py-1 text-center font-sans focus:border-emerald-400/60 focus:outline-none transition-colors text-sm"
-                      />
-
-                      <button
-                        onclick={() => updateQuantity(item.name, (cart[item.name] || 0) + 1)}
-                        disabled={!!(item.limit && cart[item.name] >= item.limit)}
-                        class="w-7 h-7 bg-emerald-600/50 hover:bg-emerald-500/60 text-white backdrop-blur border border-emerald-500/40 hover:border-emerald-400/60 disabled:bg-slate-700/30 disabled:text-slate-500 disabled:cursor-not-allowed disabled:border-slate-600/20 transition-all flex items-center justify-center text-sm font-bold"
-                      >
-                        +
-                      </button>
-                    </div>
-
-                    {#if cart[item.name] > 0}
-                      <div
-                        class="w-full text-xs text-emerald-400 font-medium font-sans text-center"
-                      >
-                        Subtotal: {prettyAmount((cart[item.name] || 0) * item.cost)}
-                      </div>
-                    {/if}
-                  </div>
-                </div>
-              </Box>
-            {/each}
-          </div>
-        </div>
-
-        <!-- Cart summary sidebar -->
-        <div class="xl:col-span-full">
-          <div class="sticky top-4">
-            <Box
-              uppercase
-              variant={boxVariant}
-              class="backdrop-blur-md border border-slate-500/3 transition-colors"
-            >
-              <div class="py-3 text-center">
-                <!-- Cart total -->
-                <div class="flex gap-4 items-baseline flex-col md:flex-row">
-                  <div
-                    class="hidden md:block text-sm text-gray-300 uppercase tracking-wide font-medium header"
-                  >
-                    Spending
-                  </div>
-                  <div class="flex items-baseline justify-center gap-2">
-                    <div class="text-3xl font-sans font-bold text-white">
-                      {prettyAmount(totalCost)}
-                    </div>
-                    <div class="text-sm text-gray-400">
-                      tokens <span class="hidden md:inline">with</span>
-                    </div>
-                  </div>
-                  <div class="flex items-baseline justify-center gap-1">
-                    <div class="text-3xl font-sans font-bold {remainingTokensClass}">
-                      {prettyAmount(Math.abs(remainingTokens))}
-                    </div>
-                    <div class="text-xs text-gray-400">
-                      {remainingTokens >= 0 ? 'remaining' : 'overspent'}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Box>
           </div>
         </div>
       </div>

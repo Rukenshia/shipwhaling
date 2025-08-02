@@ -238,10 +238,7 @@
         </div>
 
         {#snippet subtitle()}
-          <div>
-            The number of resources you can earn based on your ships in port. Add clan bonus in the
-            settings above.
-          </div>
+          <div>The number of resources you can earn based on your ships in port.</div>
         {/snippet}
       </Title>
       <div

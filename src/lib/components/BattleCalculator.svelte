@@ -87,10 +87,10 @@
   }
 </script>
 
-<Box variant="dark" class="backdrop-blur transition-all">
+<Box variant="dark" class="backdrop-blur transition-all pb-8">
   <div class="space-y-6 w-full">
     <!-- Average Base XP Slider -->
-    <div class="space-y-3">
+    <div class="">
       <label for="baseXP" class="block text-lg font-semibold text-cyan-50">
         Average Base XP per battle: <span class="text-cyan-200">{averageBaseXP}</span>
       </label>
@@ -104,9 +104,9 @@
         oninput={calculateBattles}
         class="w-full h-3 bg-cyan-200/20 rounded-lg appearance-none cursor-pointer slider"
       />
-      <div class="flex justify-between text-sm text-cyan-300">
+      <div class="flex justify-between text-center text-sm text-cyan-300">
         <span>100</span>
-        <span>1,600</span>
+        <span class="-ml-4">1,600</span>
         <span>3,200</span>
       </div>
     </div>
