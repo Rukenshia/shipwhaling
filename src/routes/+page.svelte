@@ -19,6 +19,7 @@
   import ModifierSelect from '$lib/components/ModifierSelect.svelte';
   import { CoalPort, SteelPort } from '$lib/modifiers';
   import { Anniversary2025 } from '$lib/rewards/anniversary2025';
+  import Anniversary2025Shop from '$lib/components/events/Anniversary2025Shop.svelte';
 
   const activeEvent = new Anniversary2025();
 
@@ -209,6 +210,12 @@
     return activeEvent.getMaxAdditionalRewards(ships);
   });
 
+  // Calculate available festive tokens for the shop
+  const availableFestiveTokens = derived(eventStats, async ($eventStats) => {
+    const stats = await $eventStats;
+    return stats.rewards['Festive Tokens']?.total || 0;
+  });
+
   const realmColors = {
     [Realm.EU]: 'text-cyan-300',
     [Realm.NA]: 'text-rose-400',
@@ -226,7 +233,7 @@
           <div>Rewards</div>
           <div>
             <a
-              href="https://blog.worldofwarships.com/blog/568"
+              href="https://blog.worldofwarships.com/blog/a-decade-at-sea-closed-test-148"
               target="_blank"
               class="block bg-white/20 hover:bg-white/30 transition-colors duration-200 backdrop-blur border-white/40 border-2 px-4 py-1 sm:py-2 text-white text-base sm:text-lg"
             >
@@ -377,20 +384,29 @@
       Gift Shopping
 
       {#snippet subtitle()}
-        <div>Pretend to spend your festive tokens for rewards</div>
+        <div>Plan how to spend your festive tokens from the Anniversary 2025 event</div>
       {/snippet}
     </Title>
-    {#await $shipsInPort}
-      Loading
-    {:then shipsInPort}
-      <!-- <GamblingDisclaimer /> -->
+    {#await Promise.all([$shipsInPort, $availableFestiveTokens])}
+      Loading...
+    {:then [shipsInPort, festiveTokens]}
+      <Anniversary2025Shop tokens={festiveTokens} />
     {:catch error}
       <ErrorMessage>{error.message}</ErrorMessage>
     {/await}
   </div>
 
   <div>
-    <Title size="text-4xl sm:text-6xl" align="left">Breakdown</Title>
+    <Title size="text-4xl sm:text-6xl" align="left">
+      Breakdown
+
+      {#snippet subtitle()}
+        <div>
+          A list of all ships that were considered for the calculations on this page. You might be
+          able to buy more ships for additional rewards.
+        </div>
+      {/snippet}
+    </Title>
     {#await $rewards}
       Loading
     {:then rewards}
@@ -433,14 +449,6 @@
               <span class="font-medium">Buy me a coffee</span>
             </a>
           </div>
-
-          <p>
-            An extra shoutout to the calculator posted on <a
-              href="https://www.reddit.com/r/WorldOfWarships/comments/1eva24m/2024_festive_rewards_calculator/"
-              target="_blank"
-              class="text-cyan-100 underline">Reddit by /u/adosztal</a
-            > which I used to understand the event better.
-          </p>
         </div>
 
         <div class="pt-4">
