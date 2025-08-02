@@ -1,13 +1,13 @@
 <script lang="ts">
   import anime from 'animejs';
   import { type Container, type Item, type ItemDrop } from '$lib/container';
-  import DiceIcon from './DiceIcon.svelte';
-  import BoxSelect from './BoxSelect.svelte';
+  import DiceIcon from '../DiceIcon.svelte';
+  import BoxSelect from '../BoxSelect.svelte';
   import { SantasGiftContainer } from '$lib/containers/2024-santas-gift-container';
   import { SantasMegaGiftContainer } from '$lib/containers/2024-santas-mega-gift-container';
-  import Box from './Box.svelte';
+  import Box from '../Box.svelte';
   import { GoldenContainer } from '$lib/containers/2024-golden-container';
-  import ContainerDrop from './ContainerDrop.svelte';
+  import ContainerDrop from '../ContainerDrop.svelte';
   import { prettyAmount } from '$lib/util';
   import type { Ship } from '$lib/ship';
 

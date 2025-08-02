@@ -12,34 +12,25 @@
   import type { Ship } from '$lib/ship';
 
   import bmcLogo from '$lib/assets/bmc-logo.svg';
-  import { Christmas2024 } from '$lib/rewards/christmas2024';
-  import { Coal, FestiveCertificate, Steel, type Resource } from '$lib/resource';
+  import { Coal, Steel, type Resource } from '$lib/resource';
   import RewardBreakdown from '$lib/components/RewardBreakdown.svelte';
-  import GamblingSimulator from '$lib/components/GamblingSimulator.svelte';
-  import { fade, slide } from 'svelte/transition';
+  import { slide } from 'svelte/transition';
   import ModifierSelect from '$lib/components/ModifierSelect.svelte';
   import { CoalPort, SteelPort } from '$lib/modifiers';
+  import { Anniversary2025 } from '$lib/rewards/anniversary2025';
 
-  const activeEvent = new Christmas2024();
+  const activeEvent = new Anniversary2025();
 
   let showSettings = $state(false);
   let coalModifier = $state(1);
   let steelModifier = $state(1);
-  let readAndUnderstood = $state(false);
 
   function saveModifiers() {
     localStorage.setItem('coalModifier', `${coalModifier}`);
     localStorage.setItem('steelModifier', `${steelModifier}`);
   }
 
-  function didReadAndUnderstand() {
-    readAndUnderstood = true;
-    localStorage.setItem('readAndUnderstood', 'true');
-  }
-
   onMount(() => {
-    readAndUnderstood = (localStorage.getItem('readAndUnderstood') || false) === 'true';
-
     // load modifiers
     coalModifier = parseFloat(localStorage.getItem('coalModifier') || '1');
     steelModifier = parseFloat(localStorage.getItem('steelModifier') || '1');
@@ -362,58 +353,16 @@
 
   <div>
     <Title size="text-4xl sm:text-6xl" align="left">
-      Try your luck
+      Gift Shopping
 
       {#snippet subtitle()}
-        <div>
-          Warning: not completely accurate. Guaranteed drops are not simulated. Hover to see
-          individual items you can get.
-        </div>
+        <div>Pretend to spend your festive tokens for rewards</div>
       {/snippet}
     </Title>
     {#await $shipsInPort}
       Loading
     {:then shipsInPort}
-      <div class="p-2" class:relative={!readAndUnderstood}>
-        <GamblingSimulator {shipsInPort} />
-        {#if !readAndUnderstood}
-          <div
-            transition:fade
-            class="backdrop-blur-sm bg-slate-900/60 absolute top-0 left-0 w-full h-full
-            flex items-start xl:items-center justify-center py-16 xl:py-0
-            backdrop-blur z-50"
-          >
-            <div class="flex flex-col gap-8 max-w-xl text-xl">
-              <span
-                >You can view container drop rates and pretend to open them here. <strong
-                  >This is not fully accurate</strong
-                >, for example guaranteed drops are not implemented. Open the real containers in the
-                game to get the real rewards with the correct mechanics.</span
-              >
-              <button
-                onclick={didReadAndUnderstand}
-                class="
-                  items-center
-                  justify-center
-                  xl:justify-start
-                  header gambling-button
-                  px-8 py-4 transition-all
-                  backdrop-blur
-
-                  bg-emerald-300/20 text-white
-                  outline outline-2 outline-emerald-200/60 -outline-offset-2
-                  disabled:bg-emerald-800/40 disabled:text-emerald-300
-
-                  hover:bg-emerald-600/60
-                  uppercase text-2xl font-medium
-                  flex flex-col gap-4 items-center"
-              >
-                I understand that this is not real</button
-              >
-            </div>
-          </div>
-        {/if}
-      </div>
+      <!-- <GamblingDisclaimer /> -->
     {:catch error}
       <ErrorMessage>{error.message}</ErrorMessage>
     {/await}
