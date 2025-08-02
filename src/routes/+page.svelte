@@ -218,7 +218,7 @@
   };
 </script>
 
-<div class="space-y-12">
+<div class="space-y-12 max-w-4xl mx-auto">
   <div class="space-y-4">
     <div
       class="flex gap-4 md:gap-0 md:flex-row flex-col-reverse md:items-center justify-between pr-1"
@@ -307,9 +307,7 @@
         {/if}
       </div>
     </div>
-    <div
-      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 3xl:grid-cols-5 gap-4"
-    >
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
       {#await $eventStats}
         {#each activeEvent.possibleResources as resource}
           <RewardStat title={resource.name} icon={resource.image} value={0} />

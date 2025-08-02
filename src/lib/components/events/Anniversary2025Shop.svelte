@@ -4,6 +4,7 @@
 
   interface ShopItem {
     name: string;
+    title?: () => string;
     cost: number;
     limit?: number;
     icon?: string;
@@ -40,13 +41,19 @@
       name: 'Rare economic bonuses of each type',
       cost: 125,
       limit: 50,
-      category: 'Economic Bonuses'
+      category: 'Economic Bonuses',
+      title() {
+        return '<span class="text-blue-400">Rare</span> economic bonuses of each type';
+      }
     },
     {
       name: 'Special economic bonuses of each type',
       cost: 24,
       limit: 150,
-      category: 'Economic Bonuses'
+      category: 'Economic Bonuses',
+      title() {
+        return '<span class="text-emerald-400">Special</span> economic bonuses of each type';
+      }
     },
     { name: 'Common economic bonuses of each type', cost: 12, category: 'Economic Bonuses' },
 
@@ -175,11 +182,40 @@
 
     <!-- Right side with items -->
     <div class="col-span-6 lg:col-span-5 flex flex-col gap-6 lg:border-l pl-0 lg:pl-6">
-      <div class="w-full grid grid-cols-1 xl:grid-cols-4 gap-6">
+      <div class="w-full grid grid-cols-1 xl:grid-cols-1 gap-6">
         <!-- Items section -->
-        <div class="xl:col-span-3 flex flex-col gap-6">
+        <div class="w-full flex flex-col gap-6">
           <!-- Items grid -->
           <div class="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-4">
+            {#if selectedCategory === 'Containers'}
+              <a
+                href="https://worldofwarships.eu/en/content/contents-and-drop-rates-of-containers/"
+                target="_blank"
+                class="col-span-full"
+              >
+                <Box variant="verydark" class="uppercase">
+                  <div
+                    class="tracking-wider text-center text-sm text-gray-300 flex items-center gap-2"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="1.5"
+                      stroke="currentColor"
+                      class="size-6"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"
+                      />
+                    </svg>
+                    View container contents and drop rates
+                  </div>
+                </Box>
+              </a>
+            {/if}
             {#each selectedItems as item}
               <Box variant="dark" class="backdrop-blur hover:bg-slate-800/60 transition-all">
                 <div class="w-full justify-between flex md:flex-col gap-4">
@@ -190,7 +226,11 @@
                     {/if}
                     <div class="flex-grow min-w-0">
                       <h4 class="text-white font-medium text-sm leading-tight break-words">
-                        {item.name}
+                        {#if item.title}
+                          {@html item.title()}
+                        {:else}
+                          {item.name}
+                        {/if}
                       </h4>
                       <div class="text-xs text-gray-400 mt-1">
                         {prettyAmount(item.cost)} tokens
