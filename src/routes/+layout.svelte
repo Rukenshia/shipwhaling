@@ -41,7 +41,7 @@
           WARSHIP WHALING
         </h1>
         <h2 class="text-center text-base sm:text-xl lg:text-2xl text-cyan-50/80 drop-shadow-2xl">
-          Plan your Christmas Event Rewards
+          Plan your Anniversary Event Rewards
         </h2>
       </div>
       <div class="col-span-1 lg:col-start-1 lg:col-span-9 xl:col-start-2 xl:col-span-10">

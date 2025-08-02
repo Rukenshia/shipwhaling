@@ -145,6 +145,36 @@
             {category}
           </button>
         {/each}
+
+        <label class="mt-4 flex items-center gap-2 cursor-pointer group text-gray-100">
+          <div class="relative">
+            <input type="checkbox" bind:checked={includeAnniversaryRewards} class="sr-only" />
+            <div
+              class="w-4 h-4 bg-slate-700/50 border-2 border-slate-500/60 backdrop-blur rounded flex items-center justify-center transition-all group-hover:border-emerald-400/60 {includeAnniversaryRewards
+                ? 'bg-emerald-500/20 border-emerald-400/80'
+                : ''}"
+            >
+              {#if includeAnniversaryRewards}
+                <svg
+                  class="w-2.5 h-2.5 text-emerald-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="3"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              {/if}
+            </div>
+          </div>
+          <span class="text-xs font-medium uppercase tracking-wide header">
+            Daily rewards (+2,000)
+          </span>
+        </label>
       </div>
     </div>
 

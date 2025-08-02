@@ -14,7 +14,7 @@
 
   $effect(() => {
     if (activeEvent && shipsInPort.length > 0) {
-      additionalRewards = activeEvent.getMaxAdditionalRewards(shipsInPort);
+      additionalRewards = activeEvent.getMaxAdditionalRewards(shipsInPort.length);
       calculateBattles();
     }
   });
@@ -63,7 +63,7 @@
       if (baseXpEarnedSinceAdditionalRewards >= baseXpForAdditionalRewards) {
         pendingAdditionalRewards +=
           Math.floor(baseXpEarnedSinceAdditionalRewards / baseXpForAdditionalRewards) *
-          activeEvent.getMaxAdditionalRewards(shipsInPort);
+          activeEvent.getMaxAdditionalRewards(shipsInPort.length);
         baseXpEarnedSinceAdditionalRewards %= baseXpForAdditionalRewards;
       }
 
@@ -129,7 +129,7 @@
       <div class="bg-cyan-950/40 rounded-lg p-4">
         <div class="text-sm text-cyan-300 uppercase tracking-wide">Additional Rewards</div>
         <div class="text-3xl font-bold text-cyan-100">
-          {activeEvent.getMaxAdditionalRewards(shipsInPort)}
+          {activeEvent.getMaxAdditionalRewards(shipsInPort.length)}
         </div>
         <div class="text-xs text-cyan-300 mt-1">
           for every {activeEvent.getAdditionalRewardXPRequirement()} Base XP
@@ -172,8 +172,8 @@
           <div class="text-sm text-cyan-300 space-y-1">
             <div>
               Earn {activeEvent.getAdditionalRewardXPRequirement(shipsInPort)} Base XP over any number
-              of battles to get {activeEvent.getMaxAdditionalRewards(shipsInPort)} additional unlocks
-              (based on your port with {shipsInPort.length} ships)
+              of battles to get {activeEvent.getMaxAdditionalRewards(shipsInPort.length)} additional
+              unlocks (based on your port with {shipsInPort.length} ships)
             </div>
           </div>
         </div>

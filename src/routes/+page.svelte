@@ -207,7 +207,7 @@
   const maxAdditionalRewards = derived(shipsInPort, async ($shipsInPort) => {
     const ships = await $shipsInPort;
 
-    return activeEvent.getMaxAdditionalRewards(ships);
+    return activeEvent.getMaxAdditionalRewards(ships.length);
   });
 
   // Calculate available festive tokens for the shop
