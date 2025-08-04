@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Realm, login, user } from '$lib/store';
   import { onMount } from 'svelte';
-  import { derived, type Readable } from 'svelte/store';
+  import { derived } from 'svelte/store';
   import { type Reward } from '$lib/reward';
   import RewardStat from '$lib/components/RewardStat.svelte';
   import Faq from '$lib/components/FAQ.svelte';
@@ -14,6 +14,7 @@
   import bmcLogo from '$lib/assets/bmc-logo.svg';
   import { Coal, Steel, type Resource } from '$lib/resource';
   import RewardBreakdown from '$lib/components/RewardBreakdown.svelte';
+  import TabbedRewardBreakdown from '$lib/components/TabbedRewardBreakdown.svelte';
   import BattleCalculator from '$lib/components/BattleCalculator.svelte';
   import { slide } from 'svelte/transition';
   import ModifierSelect from '$lib/components/ModifierSelect.svelte';
@@ -21,6 +22,12 @@
   import { Anniversary2025 } from '$lib/rewards/anniversary2025';
   import Anniversary2025Shop from '$lib/components/events/Anniversary2025Shop.svelte';
   import Box from '$lib/components/Box.svelte';
+  import {
+    createRewardsStore,
+    createEventStatsStore,
+    type EventStats
+  } from '$lib/rewardCalculator';
+  import Tooltip from '$lib/components/Tooltip.svelte';
 
   const activeEvent = new Anniversary2025();
 
@@ -83,15 +90,15 @@
           warships.data.find((ship) => ship.id === shipId) || new Error(`unknown ship ${shipId}`)
         );
       })
-      .map((s) => ({ ...s, inPort: true }))
-      .filter((shiporError: Ship | Error) => {
+      .filter((shiporError: Ship | Error): shiporError is Ship => {
         if (shiporError instanceof Error) {
           console.warn(shiporError.message);
           return false;
         }
 
         return true;
-      });
+      })
+      .map((s: any) => ({ ...s, inPort: true }));
   });
 
   const previouslyOwnedShips = derived(user, async ($user) => {
@@ -107,15 +114,15 @@
           warships.data.find((ship) => ship.id === shipId) || new Error(`unknown ship ${shipId}`)
         );
       })
-      .map((s) => ({ ...s, inPort: false }))
-      .filter((shiporError: Ship | Error) => {
+      .filter((shiporError: Ship | Error): shiporError is Ship => {
         if (shiporError instanceof Error) {
           console.warn(shiporError.message);
           return false;
         }
 
         return true;
-      });
+      })
+      .map((s: any) => ({ ...s, inPort: false }));
   });
 
   function applyModifier(
@@ -134,95 +141,11 @@
     }
   }
 
-  const rewards = derived(shipsInPort, async ($shipsInPort) => {
-    return (await $shipsInPort)
-      .map((ship: Ship) => ({ ...activeEvent.calculateShipReward(ship), ship }))
-      .filter((reward: Reward & { ship: Ship }) => reward.amount > 0)
-      .sort((a: { ship: Ship }, b: { ship: Ship }) => {
-        if (a.ship.tier === b.ship.tier) {
-          return a.ship.name.localeCompare(b.ship.name);
-        }
+  const rewards = createRewardsStore(shipsInPort, activeEvent);
+  const previouslyOwnedRewards = createRewardsStore(previouslyOwnedShips, activeEvent);
 
-        return b.ship.tier - a.ship.tier;
-      });
-  });
-
-  interface EventStats {
-    rewards: {
-      [key: string]: {
-        total: number;
-        ships: number;
-      };
-    };
-    conversions: {
-      [key: string]: {
-        container: any;
-        source: Resource;
-        total: number;
-      };
-    };
-    totalRequiredXP: number;
-  }
-
-  const eventStats: Readable<Promise<EventStats>> = derived(rewards, async ($rewards) => {
-    const res = (await $rewards).reduce(
-      (acc: EventStats, reward: Reward & { ship: Ship }) => {
-        return {
-          rewards: {
-            ...acc.rewards,
-            [reward.resource.name]: {
-              total: acc.rewards[reward.resource.name].total + reward.amount,
-              ships: acc.rewards[reward.resource.name].ships + 1
-            }
-          },
-          conversions: {},
-          totalRequiredXP: acc.totalRequiredXP + reward.requiredXP
-        };
-      },
-      {
-        rewards: activeEvent.possibleResources.reduce(
-          (acc, resource) => ({ ...acc, [resource.name]: { total: 0, ships: 0 } }),
-          {}
-        ),
-        conversions: {},
-        totalRequiredXP: 0
-      }
-    );
-
-    // calculate container conversions
-    for (const resourceName of Object.keys(res.rewards)) {
-      const total = res.rewards[resourceName].total;
-      const resource: Resource = activeEvent.possibleResources.find((r) => r.name === resourceName);
-      if (!resource) {
-        continue;
-      }
-
-      for (const conversion of resource.convertsTo || []) {
-        const maxAmount = Math.floor(total / conversion.cost);
-
-        if (res.conversions[conversion.container.name]) {
-          res.conversions[conversion.container.name].total += maxAmount * conversion.returns;
-          res.conversions[conversion.container.name].container = conversion.container;
-        } else {
-          res.conversions[conversion.container.name] = {
-            total: maxAmount * conversion.returns,
-            container: conversion.container,
-            source: resource
-          };
-        }
-      }
-    }
-
-    res.conversions = Object.keys(res.conversions).reduce((acc, key) => {
-      if (res.conversions[key].total > 0) {
-        return { ...acc, [key]: res.conversions[key] };
-      }
-
-      return acc;
-    }, {});
-
-    return res;
-  });
+  const eventStats = createEventStatsStore(rewards, activeEvent);
+  const previouslyOwnedEventStats = createEventStatsStore(previouslyOwnedRewards, activeEvent);
 
   const maxAdditionalRewards = derived(shipsInPort, async ($shipsInPort) => {
     const ships = await $shipsInPort;
@@ -329,48 +252,100 @@
         {/if}
       </div>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
-      {#await $eventStats}
-        {#each activeEvent.possibleResources as resource}
-          <RewardStat title={resource.name} icon={resource.image} value={0} />
-          <RewardStat title={resource.name} icon={resource.image} value={0} />
-        {/each}
-      {:then rewards}
-        {#each activeEvent.possibleResources as resource}
-          <RewardStat
-            title={resource.name}
-            icon={resource.image}
-            value={applyModifier(
-              rewards.rewards[resource.name].total,
-              resource,
-              coalModifier,
-              steelModifier
-            )}
-          >
-            from {rewards.rewards[resource.name].ships} ships
-          </RewardStat>
-        {/each}
-        {#each Object.keys(rewards.conversions) as conversionStat}
-          <RewardStat
-            title={rewards.conversions[conversionStat].container.name}
-            icon={rewards.conversions[conversionStat].container.icon}
-            value={rewards.conversions[conversionStat].total}
-          >
-            by converting all {rewards.conversions[conversionStat].source.name}
-          </RewardStat>
-        {/each}
-        {#await $maxAdditionalRewards}
-          <RewardStat title="Additional Rewards" value={0} />
-        {:then maxAdditionalRewards}
-          <RewardStat title="Additional Rewards" value={maxAdditionalRewards}>
-            Per battle over 1,000 Base XP
-          </RewardStat>
-        {:catch}
-          <RewardStat title="Additional Rewards" value={0} />
+    <div class="space-y-8">
+      <!-- Main rewards section -->
+      <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4">
+        {#await Promise.all([$eventStats, $previouslyOwnedEventStats])}
+          {#each activeEvent.possibleResources as resource}
+            <RewardStat title={resource.name} icon={resource.image} value={0} />
+          {/each}
+        {:then [currentRewards, previousRewards]}
+          {#each activeEvent.possibleResources as resource}
+            <RewardStat
+              title={resource.name}
+              icon={resource.image}
+              value={applyModifier(
+                currentRewards.rewards[resource.name].total,
+                resource,
+                coalModifier,
+                steelModifier
+              )}
+            >
+              from {currentRewards.rewards[resource.name].ships} ships in port
+            </RewardStat>
+          {/each}
+          {#each Object.keys(currentRewards.conversions) as conversionStat}
+            <RewardStat
+              title={currentRewards.conversions[conversionStat].container.name}
+              icon={currentRewards.conversions[conversionStat].container.icon}
+              value={currentRewards.conversions[conversionStat].total}
+            >
+              by converting all {currentRewards.conversions[conversionStat].source.name}
+            </RewardStat>
+          {/each}
+          <!-- {#await $maxAdditionalRewards}
+            <RewardStat title="Additional Rewards" value={0} />
+          {:then maxAdditionalRewards}
+            <RewardStat title="Additional Rewards" value={maxAdditionalRewards}>
+              Per battle over 1,000 Base XP
+            </RewardStat>
+          {:catch}
+            <RewardStat title="Additional Rewards" value={0} />
+          {/await} -->
+        {:catch error}
+          <ErrorMessage>{error.message}</ErrorMessage>
         {/await}
-      {:catch error}
-        <ErrorMessage>{error.message}</ErrorMessage>
-      {/await}
+
+        <!-- Previously owned ships rewards -->
+        <div>
+          <Tooltip>
+            {#snippet tooltip()}
+              You could earn these rewards if you re-buy ships that you had in your port before. A
+              full breakdown can be found in the "Breakdown" section below.
+            {/snippet}
+            <div class="grid grid-cols-2 md:grid-cols-1 gap-3">
+              {#await Promise.all([$eventStats, $previouslyOwnedEventStats])}
+                {#each activeEvent.possibleResources as resource}
+                  <RewardStat
+                    title={resource.name}
+                    icon={resource.image}
+                    value={0}
+                    variant="compact"
+                  />
+                {/each}
+              {:then [currentRewards, previousRewards]}
+                {#each activeEvent.possibleResources as resource}
+                  <RewardStat
+                    title={resource.name}
+                    icon={resource.image}
+                    value={applyModifier(
+                      previousRewards.rewards[resource.name].total,
+                      resource,
+                      coalModifier,
+                      steelModifier
+                    )}
+                    variant="compact"
+                  >
+                    from {previousRewards.rewards[resource.name].ships} previously owned ships
+                  </RewardStat>
+                {/each}
+                {#each Object.keys(previousRewards.conversions) as conversionStat}
+                  <RewardStat
+                    title={previousRewards.conversions[conversionStat].container.name}
+                    icon={previousRewards.conversions[conversionStat].container.icon}
+                    value={previousRewards.conversions[conversionStat].total}
+                    variant="compact"
+                  >
+                    by converting {previousRewards.conversions[conversionStat].source.name}
+                  </RewardStat>
+                {/each}
+              {:catch error}
+                <ErrorMessage>{error.message}</ErrorMessage>
+              {/await}
+            </div>
+          </Tooltip>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -422,10 +397,10 @@
         </div>
       {/snippet}
     </Title>
-    {#await $rewards}
+    {#await Promise.all([$rewards, $previouslyOwnedRewards])}
       Loading
-    {:then rewards}
-      <RewardBreakdown {rewards} />
+    {:then [rewards, previouslyOwnedRewards]}
+      <TabbedRewardBreakdown currentRewards={rewards} {previouslyOwnedRewards} />
     {:catch error}
       <ErrorMessage>{error.message}</ErrorMessage>
     {/await}
@@ -480,10 +455,10 @@
             <a
               href="https://shipvote.in.fkn.space"
               target="_blank"
-              class="block
+              class="flex gap-8 items-center
             bg-purple-900/60 hover:bg-purple-900/80 transition-colors duration-200
             border-2 border-purple-400/20
-            backdrop-blur px-8 py-4 text-purple-50 flex gap-8 items-center"
+            backdrop-blur px-8 py-4 text-purple-50"
             >
               <svg
                 class="h-16 w-16 flex-shrink-0"

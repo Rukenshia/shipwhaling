@@ -82,8 +82,8 @@ class User {
       {
         params: {
           ...this.getQueryParams(),
-          fields: 'ship_id',
-          extra: 'images'
+          in_garage: 0,
+          fields: 'ship_id'
         }
       }
     );

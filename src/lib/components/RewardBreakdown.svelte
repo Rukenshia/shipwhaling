@@ -1,7 +1,7 @@
 <script lang="ts">
   import Box from './Box.svelte';
 
-  let { rewards } = $props();
+  let { rewards, title = 'Rewards' } = $props();
 
   function romanized(tier: number) {
     return ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', '⭐︎'][tier - 1];

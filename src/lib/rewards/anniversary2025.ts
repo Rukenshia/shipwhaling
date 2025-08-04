@@ -10,7 +10,7 @@ export class Anniversary2025 {
   }
 
   private isExperimentalShip(ship: Ship): boolean {
-    return ship.isExperimental;
+    return ship.isExperimental ?? false;
   }
 
   public possibleResources: Resource[] = [FestiveTokens, Steel];
@@ -80,13 +80,20 @@ export class Anniversary2025 {
 
   public getBaseXPRequirement(tier: number): number {
     switch (tier) {
-      case 5: return 200;
-      case 6: return 250;
-      case 7: return 300;
-      case 8: return 400;
-      case 9: return 500;
-      case 10: return 600;
-      default: return 600; // Superships
+      case 5:
+        return 200;
+      case 6:
+        return 250;
+      case 7:
+        return 300;
+      case 8:
+        return 400;
+      case 9:
+        return 500;
+      case 10:
+        return 600;
+      default:
+        return 600; // Superships
     }
   }
 
