@@ -51,7 +51,6 @@ class User {
         ...this.getQueryParams()
       }
     });
-
   }
 
   public async getShipsInPort() {
@@ -71,6 +70,25 @@ class User {
     );
 
     return response.data.data[this.account_id].private.port;
+  }
+
+  public async getPreviouslyOwnedShipIds(): Promise<number[]> {
+    if (this.isTokenExpired()) {
+      throw new Error('Token expired');
+    }
+
+    const response = await axios.get(
+      `https://api.worldofwarships.${this.realm}/wows/ships/stats/`,
+      {
+        params: {
+          ...this.getQueryParams(),
+          fields: 'ship_id',
+          extra: 'images'
+        }
+      }
+    );
+
+    return (response.data.data[this.account_id] || []).map((ship: any) => ship.ship_id);
   }
 }
 

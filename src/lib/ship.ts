@@ -5,4 +5,6 @@ export interface Ship {
   type: string;
   image: string;
   hasDemoProfile: boolean;
+
+  inPort: boolean;
 }

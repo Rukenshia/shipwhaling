@@ -83,6 +83,31 @@
           warships.data.find((ship) => ship.id === shipId) || new Error(`unknown ship ${shipId}`)
         );
       })
+      .map((s) => ({ ...s, inPort: true }))
+      .filter((shiporError: Ship | Error) => {
+        if (shiporError instanceof Error) {
+          console.warn(shiporError.message);
+          return false;
+        }
+
+        return true;
+      });
+  });
+
+  const previouslyOwnedShips = derived(user, async ($user) => {
+    if (!$user) {
+      return [];
+    }
+
+    const ships = await $user.getPreviouslyOwnedShipIds();
+
+    return ships
+      .map((shipId: number) => {
+        return (
+          warships.data.find((ship) => ship.id === shipId) || new Error(`unknown ship ${shipId}`)
+        );
+      })
+      .map((s) => ({ ...s, inPort: false }))
       .filter((shiporError: Ship | Error) => {
         if (shiporError instanceof Error) {
           console.warn(shiporError.message);
