@@ -70,7 +70,8 @@ async function getShips() {
       ship.hasDemoProfile =
         vortexShip.tags.includes('demoWithoutStats') ||
         vortexShip.tags.includes('demoWithoutStatsPrem') ||
-        vortexShip.tags.includes('experimental');
+        vortexShip.tags.includes('experimental') ||
+        vortexShip.tags.includes('clan');
     }
   });
 
