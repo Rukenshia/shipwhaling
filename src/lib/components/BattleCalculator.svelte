@@ -1,12 +1,12 @@
 <script lang="ts">
   import type { Reward } from '$lib/reward';
-  import type { Anniversary2025 } from '$lib/rewards/anniversary2025';
+  import type { Christmas2025 } from '$lib/rewards/christmas2025';
   import type { Ship } from '$lib/ship';
   import Collapsible from '$lib/components/Collapsible.svelte';
   import Box from './Box.svelte';
 
   let { activeEvent, shipsInPort } = $props<{
-    activeEvent: Anniversary2025;
+    activeEvent: Christmas2025;
     shipsInPort: Ship[];
   }>();
 
@@ -135,7 +135,7 @@
     </div>
 
     <!-- Mission Breakdown -->
-    <Collapsible title="How The Anniversary Event Works">
+    <Collapsible title="How The Christmas Event Works">
       {#snippet children()}
         <div class="space-y-3">
           <Box variant="dark">

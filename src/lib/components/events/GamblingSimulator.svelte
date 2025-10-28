@@ -3,17 +3,18 @@
   import { type Container, type Item, type ItemDrop } from '$lib/container';
   import DiceIcon from '../DiceIcon.svelte';
   import BoxSelect from '../BoxSelect.svelte';
-  import { SantasGiftContainer } from '$lib/containers/2024-santas-gift-container';
-  import { SantasMegaGiftContainer } from '$lib/containers/2024-santas-mega-gift-container';
+  import { SantasGiftContainer2025 } from '$lib/containers/2025-santas-gift-container';
+  import { SantasMegaGiftContainer2025 } from '$lib/containers/2025-santas-mega-gift-container';
+  import { SantasUltraGiftContainer2025 } from '$lib/containers/2025-santas-ultra-gift-container';
   import Box from '../Box.svelte';
-  import { GoldenContainer } from '$lib/containers/2024-golden-container';
+  import { GoldenContainer2025 } from '$lib/containers/2025-golden-container';
   import ContainerDrop from '../ContainerDrop.svelte';
   import { prettyAmount } from '$lib/util';
   import type { Ship } from '$lib/ship';
 
   let { shipsInPort }: { shipsInPort: Ship[] } = $props();
 
-  let selectedContainer: Container = $state(SantasGiftContainer);
+  let selectedContainer: Container = $state(SantasGiftContainer2025);
 
   // Container with ships we don't have
   let container = $derived({
@@ -215,25 +216,30 @@
 </script>
 
 <div class="flex flex-col gap-8">
-  <div class="w-full grid grid-cols-6 divide-white/20 gap-4">
-    <div class="col-span-6 lg:col-span-1 flex flex-col gap-4">
-      <div class="grid grid-cols-3 lg:grid-cols-1 gap-4">
+  <div class="w-full grid grid-cols-8 divide-white/20 gap-4">
+    <div class="col-span-full lg:col-span-2 flex flex-col gap-4">
+      <div class="grid grid-cols-4 lg:grid-cols-2 gap-4">
         <BoxSelect
           choices={[
             {
-              icon: SantasGiftContainer.icon,
-              name: SantasGiftContainer.name,
-              value: SantasGiftContainer
+              icon: SantasGiftContainer2025.icon,
+              name: SantasGiftContainer2025.name,
+              value: SantasGiftContainer2025
             },
             {
-              icon: SantasMegaGiftContainer.icon,
-              name: SantasMegaGiftContainer.name,
-              value: SantasMegaGiftContainer
+              icon: SantasMegaGiftContainer2025.icon,
+              name: SantasMegaGiftContainer2025.name,
+              value: SantasMegaGiftContainer2025
             },
             {
-              icon: GoldenContainer.icon,
-              name: GoldenContainer.name,
-              value: GoldenContainer
+              icon: SantasUltraGiftContainer2025.icon,
+              name: SantasUltraGiftContainer2025.name,
+              value: SantasUltraGiftContainer2025
+            },
+            {
+              icon: GoldenContainer2025.icon,
+              name: GoldenContainer2025.name,
+              value: GoldenContainer2025
             }
           ]}
           selected={container}
@@ -322,7 +328,7 @@
     </div>
 
     <div
-      class="col-span-6 lg:col-span-5 flex flex-col justify-between gap-4 lg:border-l pl-0 lg:pl-4"
+      class="col-span-full lg:col-span-6 flex flex-col justify-between gap-4 lg:border-l pl-0 lg:pl-4"
     >
       <div class="w-full flex flex-col gap-8">
         {#if container.guaranteedDrop}

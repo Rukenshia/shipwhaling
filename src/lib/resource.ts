@@ -4,8 +4,8 @@ import steel from './assets/steel.svg';
 import festiveToken from './assets/festive-token.png';
 import festiveCertificate from './assets/festive-certificate.png';
 import baseXP from './assets/base-xp.svg';
-import { SantasGiftContainer } from './containers/2024-santas-gift-container';
-import { SantasMegaGiftContainer } from './containers/2024-santas-mega-gift-container';
+import { SantasGiftContainer2025 } from './containers/2025-santas-gift-container';
+import { SantasMegaGiftContainer2025 } from './containers/2025-santas-mega-gift-container';
 
 export interface Resource {
   name: string;
@@ -41,12 +41,12 @@ export const FestiveCertificate: Resource = {
 
   convertsTo: [
     {
-      container: SantasGiftContainer,
+      container: SantasGiftContainer2025,
       cost: 1,
       returns: 1
     },
     {
-      container: SantasMegaGiftContainer,
+      container: SantasMegaGiftContainer2025,
       cost: 5,
       returns: 1
     }

@@ -19,8 +19,8 @@
   import { slide } from 'svelte/transition';
   import ModifierSelect from '$lib/components/ModifierSelect.svelte';
   import { CoalPort, SteelPort } from '$lib/modifiers';
-  import { Anniversary2025 } from '$lib/rewards/anniversary2025';
-  import Anniversary2025Shop from '$lib/components/events/Anniversary2025Shop.svelte';
+  import { Christmas2025 } from '$lib/rewards/christmas2025';
+  import Christmas2025Shop from '$lib/components/events/Christmas2025Shop.svelte';
   import Box from '$lib/components/Box.svelte';
   import {
     createRewardsStore,
@@ -29,7 +29,7 @@
   } from '$lib/rewardCalculator';
   import Tooltip from '$lib/components/Tooltip.svelte';
 
-  const activeEvent = new Anniversary2025();
+  const activeEvent = new Christmas2025();
 
   let showSettings = $state(false);
   let coalModifier = $state(1);
@@ -153,10 +153,10 @@
     return activeEvent.getMaxAdditionalRewards(ships.length);
   });
 
-  // Calculate available festive tokens for the shop
-  const availableFestiveTokens = derived(eventStats, async ($eventStats) => {
+  // Calculate available festive certificates for the shop
+  const availableFestiveCertificates = derived(eventStats, async ($eventStats) => {
     const stats = await $eventStats;
-    return stats.rewards['Festive Tokens']?.total || 0;
+    return stats.rewards['Festive Certificate']?.total || 0;
   });
 
   const realmColors = {
@@ -176,7 +176,7 @@
           <div>Rewards</div>
           <div>
             <a
-              href="https://blog.worldofwarships.com/blog/a-decade-at-sea-closed-test-148"
+              href="https://blog.worldofwarships.com/blog/holiday-celebrations-closed-test-1411"
               target="_blank"
               class="block bg-white/20 hover:bg-white/30 transition-colors duration-200 backdrop-blur border-white/40 border-2 px-4 py-1 sm:py-2 text-white text-base sm:text-lg"
             >
@@ -371,16 +371,16 @@
 
   <div>
     <Title size="text-4xl sm:text-6xl" align="left">
-      Gift Shopping
+      Container Simulator
 
       {#snippet subtitle()}
-        <div>Plan how to spend your festive tokens from the Anniversary 2025 event</div>
+        <div>Simulate opening Santa's Gift containers and view drop rates</div>
       {/snippet}
     </Title>
-    {#await Promise.all([$shipsInPort, $availableFestiveTokens])}
+    {#await $shipsInPort}
       Loading...
-    {:then [shipsInPort, festiveTokens]}
-      <Anniversary2025Shop tokens={festiveTokens} />
+    {:then shipsInPort}
+      <Christmas2025Shop {shipsInPort} />
     {:catch error}
       <ErrorMessage>{error.message}</ErrorMessage>
     {/await}
