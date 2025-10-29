@@ -17,6 +17,7 @@
       ${variant === 'verydark' ? 'bg-slate-950/80 outline-white/40' : ''}
       ${variant === 'subtle' ? 'bg-slate-950/20 backdrop-blur outline-slate-950/10' : ''}
       ${variant === 'error' ? 'bg-red-950/30 outline-red-500/20' : ''}
+      ${variant === 'info' ? 'bg-yellow-800/30 outline-yellow-500/20 text-white' : ''}
 
       outline outline-2 -outline-offset-2
       transition-all`}

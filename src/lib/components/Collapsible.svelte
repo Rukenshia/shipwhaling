@@ -2,13 +2,13 @@
   import Box from './Box.svelte';
 
   let {
-    title,
     isOpen = false,
-    children
+    children,
+    title
   } = $props<{
-    title: string;
     isOpen?: boolean;
     children: any;
+    title: import('svelte').Snippet;
   }>();
 
   let collapsed = $state(!isOpen);
@@ -24,7 +24,7 @@
       onclick={toggle}
       class="w-full flex items-center justify-between p-4 text-left transition-colors"
     >
-      <span class="font-semibold text-cyan-100">{title}</span>
+      <div class="font-semibold text-cyan-100">{@render title()}</div>
       <svg
         class="w-5 h-5 text-cyan-300 transition-transform duration-200 {collapsed
           ? ''

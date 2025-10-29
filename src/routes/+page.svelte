@@ -29,6 +29,7 @@
   } from '$lib/rewardCalculator';
   import Tooltip from '$lib/components/Tooltip.svelte';
   import { prettyAmount } from '$lib/util';
+  import Collapsible from '$lib/components/Collapsible.svelte';
 
   const activeEvent = new Christmas2025();
 
@@ -253,6 +254,9 @@
         {/if}
       </div>
     </div>
+    <Box variant="info">
+      The website is still being updated for the Christmas 2025 event - please bear with me!
+    </Box>
     <div class="space-y-8">
       <!-- Main rewards section -->
       <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4">
@@ -360,8 +364,8 @@
     {/await}
   </div>
 
-  <div>
-    <Title size="text-4xl sm:text-6xl" align="left">
+  <!-- <div>
+    <Title size="text-4xl sm:text-6xl p-0 m-0" align="left">
       Container Simulator
 
       {#snippet subtitle()}
@@ -375,7 +379,7 @@
     {:catch error}
       <ErrorMessage>{error.message}</ErrorMessage>
     {/await}
-  </div>
+  </div> -->
 
   <div>
     <Title size="text-4xl sm:text-6xl" align="left">

@@ -1,7 +1,7 @@
 <script lang="ts">
   import '../app.css';
 
-  import whale from '$lib/assets/whale.gif';
+  import whale from '$lib/assets/christmas.png';
 
   interface Props {
     children?: import('svelte').Snippet;
@@ -41,7 +41,7 @@
           WARSHIP WHALING
         </h1>
         <h2 class="text-center text-base sm:text-xl lg:text-2xl text-cyan-50/80 drop-shadow-2xl">
-          Plan your Anniversary Event Rewards
+          Plan your Christmas Event Rewards
         </h2>
       </div>
       <div class="col-span-1 lg:col-start-1 lg:col-span-9 xl:col-start-2 xl:col-span-10">

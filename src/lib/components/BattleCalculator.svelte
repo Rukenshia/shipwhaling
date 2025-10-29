@@ -135,7 +135,10 @@
     </div>
 
     <!-- Mission Breakdown -->
-    <Collapsible title="How The Christmas Event Works">
+    <Collapsible>
+      {#snippet title()}
+        How The Christmas Event Works
+      {/snippet}
       {#snippet children()}
         <div class="space-y-3">
           <Box variant="dark">
