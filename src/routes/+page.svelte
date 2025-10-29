@@ -28,6 +28,7 @@
     type EventStats
   } from '$lib/rewardCalculator';
   import Tooltip from '$lib/components/Tooltip.svelte';
+  import { prettyAmount } from '$lib/util';
 
   const activeEvent = new Christmas2025();
 
@@ -261,18 +262,58 @@
           {/each}
         {:then [currentRewards, previousRewards]}
           {#each activeEvent.possibleResources as resource}
-            <RewardStat
-              title={resource.name}
-              icon={resource.image}
-              value={applyModifier(
-                currentRewards.rewards[resource.name].total,
-                resource,
-                coalModifier,
-                steelModifier
-              )}
-            >
-              from {currentRewards.rewards[resource.name].ships} ships in port
-            </RewardStat>
+            <div class="space-y-3">
+              <RewardStat
+                title={resource.name}
+                icon={resource.image}
+                value={applyModifier(
+                  currentRewards.rewards[resource.name].total,
+                  resource,
+                  coalModifier,
+                  steelModifier
+                )}
+              >
+                from {currentRewards.rewards[resource.name].ships} ships in port
+                {#if previousRewards.rewards[resource.name].total > 0}
+                  <br />
+                  <span class="block lg:hidden text-xs text-cyan-200/50">
+                    +
+                    {prettyAmount(
+                      applyModifier(
+                        previousRewards.rewards[resource.name].total,
+                        resource,
+                        coalModifier,
+                        steelModifier
+                      )
+                    )}
+                    from previously owned ships
+                  </span>
+                {/if}
+              </RewardStat>
+              {#if previousRewards.rewards[resource.name].total > 0}
+                <div class="hidden lg:block">
+                  <Tooltip>
+                    {#snippet tooltip()}
+                      You could earn these rewards if you re-buy ships that you had in your port
+                      before. A full breakdown can be found in the "Breakdown" section below.
+                    {/snippet}
+                    <RewardStat
+                      title={resource.name}
+                      icon={resource.image}
+                      value={applyModifier(
+                        previousRewards.rewards[resource.name].total,
+                        resource,
+                        coalModifier,
+                        steelModifier
+                      )}
+                      variant="compact"
+                    >
+                      from {previousRewards.rewards[resource.name].ships} previously owned ships
+                    </RewardStat>
+                  </Tooltip>
+                </div>
+              {/if}
+            </div>
           {/each}
           {#each Object.keys(currentRewards.conversions) as conversionStat}
             <RewardStat
@@ -295,56 +336,6 @@
         {:catch error}
           <ErrorMessage>{error.message}</ErrorMessage>
         {/await}
-
-        <!-- Previously owned ships rewards -->
-        <div>
-          <Tooltip>
-            {#snippet tooltip()}
-              You could earn these rewards if you re-buy ships that you had in your port before. A
-              full breakdown can be found in the "Breakdown" section below.
-            {/snippet}
-            <div class="grid grid-cols-2 md:grid-cols-1 gap-3">
-              {#await Promise.all([$eventStats, $previouslyOwnedEventStats])}
-                {#each activeEvent.possibleResources as resource}
-                  <RewardStat
-                    title={resource.name}
-                    icon={resource.image}
-                    value={0}
-                    variant="compact"
-                  />
-                {/each}
-              {:then [currentRewards, previousRewards]}
-                {#each activeEvent.possibleResources as resource}
-                  <RewardStat
-                    title={resource.name}
-                    icon={resource.image}
-                    value={applyModifier(
-                      previousRewards.rewards[resource.name].total,
-                      resource,
-                      coalModifier,
-                      steelModifier
-                    )}
-                    variant="compact"
-                  >
-                    from {previousRewards.rewards[resource.name].ships} previously owned ships
-                  </RewardStat>
-                {/each}
-                {#each Object.keys(previousRewards.conversions) as conversionStat}
-                  <RewardStat
-                    title={previousRewards.conversions[conversionStat].container.name}
-                    icon={previousRewards.conversions[conversionStat].container.icon}
-                    value={previousRewards.conversions[conversionStat].total}
-                    variant="compact"
-                  >
-                    by converting {previousRewards.conversions[conversionStat].source.name}
-                  </RewardStat>
-                {/each}
-              {:catch error}
-                <ErrorMessage>{error.message}</ErrorMessage>
-              {/await}
-            </div>
-          </Tooltip>
-        </div>
       </div>
     </div>
   </div>
