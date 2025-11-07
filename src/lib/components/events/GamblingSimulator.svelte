@@ -35,7 +35,9 @@
             return 0;
           })
           .filter((item) => {
-            return !shipsInPort.some((ship) => ship.name === item.name);
+            return !shipsInPort.some(
+              (ship) => ship.name.replace(/\s+/g, ' ') === item.name.replace(/\s+/g, ' ')
+            );
           })
       };
     })
