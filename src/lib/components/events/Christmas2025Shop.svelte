@@ -34,10 +34,10 @@
     >
       <div class="flex flex-col gap-8 max-w-xl text-xl">
         <span
-          >You can view container drop rates and pretend to open them here. <strong
-            >This is not fully accurate</strong
-          >, for example guaranteed drops are not implemented. Open the real containers in the game
-          to get the real rewards with the correct mechanics.</span
+          >This tool allows you to pretend to open containers, but is <strong
+            >not fully accurate or representative of all mechanics</strong
+          >. For example, guaranteed drops are not implemented. For the full experience and to
+          receive real rewards you will need to open real containers within World of Warships.</span
         >
         <button
           onclick={didReadAndUnderstand}
