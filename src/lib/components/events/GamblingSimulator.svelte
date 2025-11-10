@@ -349,6 +349,9 @@
           </Box>
         {/if}
         <div class="w-full grid grid-cols-2 lg:grid-cols-3 3xl:grid-cols-6 gap-4 transition-all">
+          <div class="col-span-full text-gray-400 text-sm italic lg:hidden text-center mb-2">
+            Tap on a drop to see full details
+          </div>
           {#if simulationResults}
             {#each simulationResults as { drop, item, count } (`simul-${drop.name}-${item.name}`)}
               <ContainerDrop simulated={true} {drop} {count} />
