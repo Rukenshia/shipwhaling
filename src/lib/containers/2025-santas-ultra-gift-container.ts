@@ -1,5 +1,5 @@
 import { verifyContainer, type Container } from '$lib/container';
-import icon from '$lib/assets/santas-mega-gift-container.png'; // Using mega gift icon as placeholder
+import icon from '$lib/assets/santas-ultra-gift-container.png';
 
 export const SantasUltraGiftContainer2025: Container = {
   icon,
