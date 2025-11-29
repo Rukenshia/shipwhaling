@@ -128,7 +128,9 @@
       { length: simulationRolls },
       () => {
         // Guarantee a ship drop every nth container where applicable
-        const isGuaranteedDrop = (pityCounter + 1) % container.guaranteedDropAfter === 0;
+        const isGuaranteedDrop = container.guaranteedDropAfter
+          ? (pityCounter + 1) % container.guaranteedDropAfter === 0
+          : false;
         const drop = isGuaranteedDrop ? getShipDrop() : getRandomDrop();
 
         if (drop.type === 'ship') {
