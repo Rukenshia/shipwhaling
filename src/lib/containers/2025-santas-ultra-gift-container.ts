@@ -6,12 +6,7 @@ export const SantasUltraGiftContainer2025: Container = {
   name: "Santa's Ultra Gift Container",
 
   guaranteedDropAfter: 7,
-  guaranteedDrop: {
-    probability: 1,
-    name: 'Ship (any)',
-    type: 'item',
-    items: [{ name: 'Any ship the container can drop', amount: 1 }]
-  },
+  guaranteedDropType: 'ship',
 
   // NOTE: This container has 3 slots in the game
   // Slot 1 (shown here): Doubloons, Coal, Golden Gift, Premium, Ships

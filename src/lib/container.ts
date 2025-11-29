@@ -8,7 +8,12 @@ export interface Container {
   drops: ItemDrop[];
 
   guaranteedDropAfter?: number;
+
+  /**
+   * @deprecated Use guaranteedDrop with type 'ship' instead
+   */
   guaranteedDrop?: ItemDrop;
+  guaranteedDropType?: 'ship';
 }
 
 export interface ItemDrop {

@@ -6,12 +6,7 @@ export const GoldenContainer2025: Container = {
   name: 'Golden Gift Container',
 
   guaranteedDropAfter: 10,
-  guaranteedDrop: {
-    probability: 1,
-    name: 'Ship (any)',
-    type: 'item',
-    items: [{ name: 'Any ship the container can drop', amount: 1 }]
-  },
+  guaranteedDropType: 'ship',
 
   drops: [
     {

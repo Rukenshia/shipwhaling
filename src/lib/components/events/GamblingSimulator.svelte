@@ -64,10 +64,10 @@
     console.error('No drop found', random, cum);
   }
 
-  function getShipDrop(): ItemDrop {
+  function getGuaranteedDrop(): ItemDrop {
     const random = Math.random();
 
-    const shipDrops = container.drops.filter((s) => s.type === 'ship');
+    const shipDrops = container.drops.filter((s) => s.type === container.guaranteedDropType!);
     const scale = shipDrops.reduce((acc, { probability }, index, array) => {
       if (index === array.length) return acc / array.length;
       return acc + probability;
@@ -131,7 +131,7 @@
         const isGuaranteedDrop = container.guaranteedDropAfter
           ? (pityCounter + 1) % container.guaranteedDropAfter === 0
           : false;
-        const drop = isGuaranteedDrop ? getShipDrop() : getRandomDrop();
+        const drop = isGuaranteedDrop ? getGuaranteedDrop() : getRandomDrop();
 
         if (drop.type === 'ship') {
           pityCounter = 0;
@@ -365,18 +365,15 @@
       class="col-span-full lg:col-span-6 flex flex-col justify-between gap-4 lg:border-l pl-0 lg:pl-4"
     >
       <div class="w-full flex flex-col gap-8">
-        {#if container.guaranteedDrop}
+        {#if container.guaranteedDropAfter}
           <Box class="col-span-6" variant="subtle">
             <span class="flex items-baseline gap-2">
               <span class="text-gray-300"
                 >Guaranteed drop on the {container.guaranteedDropAfter}th roll:</span
               >
-              <span class="font-sans normal-case text-emerald-400/80 font-medium"
-                >{#if container.guaranteedDrop.items[0].amount > 1}
-                  {prettyAmount(container.guaranteedDrop.items[0].amount)}
-                {/if}
-                {container.guaranteedDrop.items[0].name}</span
-              >
+              <span class="font-sans normal-case text-emerald-400/80 font-medium">
+                any {container.guaranteedDropType}
+              </span>
             </span>
           </Box>
         {/if}

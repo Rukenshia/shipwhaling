@@ -6,12 +6,7 @@ export const SantasMegaGiftContainer2025: Container = {
   name: "Santa's Mega Gift Container",
 
   guaranteedDropAfter: 15,
-  guaranteedDrop: {
-    probability: 1,
-    name: 'Ship (any)',
-    type: 'item',
-    items: [{ name: 'Any ship the container can drop', amount: 1 }]
-  },
+  guaranteedDropType: 'ship',
 
   drops: [
     {
