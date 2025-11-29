@@ -64,6 +64,27 @@
     console.error('No drop found', random, cum);
   }
 
+  function getShipDrop(): ItemDrop {
+    const random = Math.random();
+
+    const shipDrops = container.drops.filter((s) => s.type === 'ship');
+    const scale = shipDrops.reduce((acc, { probability }, index, array) => {
+      if (index === array.length) return acc / array.length;
+      return acc + probability;
+    }, 0);
+
+    let cum = 0;
+    for (const drop of shipDrops) {
+      cum += drop.probability / scale;
+      if (random < cum) {
+        return drop;
+      }
+    }
+
+    // oopsie
+    console.error('No drop found', random, cum);
+  }
+
   let lastDrop: ItemDrop | undefined = $state(undefined);
   let lastDroppedItem = $derived(lastDrop ? randomElement(lastDrop?.items) : undefined);
   let simulationResults: { drop: ItemDrop; item: Item; count: number }[] | undefined =
@@ -102,10 +123,19 @@
     }
     gambling = true;
 
+    let pityCounter = 0;
     let results: { [key: string]: { drop: ItemDrop; item: Item; count: number } } = Array.from(
       { length: simulationRolls },
       () => {
-        const drop = getRandomDrop();
+        // Guarantee a ship drop every nth container where applicable
+        const isGuaranteedDrop = (pityCounter + 1) % container.guaranteedDropAfter === 0;
+        const drop = isGuaranteedDrop ? getShipDrop() : getRandomDrop();
+
+        if (drop.type === 'ship') {
+          pityCounter = 0;
+        } else {
+          pityCounter++;
+        }
 
         if (drop.items.length === 0) {
           return { drop: drop, item: { name: 'Compensation', amount: 1 } };
