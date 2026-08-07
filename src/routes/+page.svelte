@@ -30,6 +30,7 @@
   import Tooltip from '$lib/components/Tooltip.svelte';
   import { prettyAmount } from '$lib/util';
   import Collapsible from '$lib/components/Collapsible.svelte';
+  import NoEventBanner from '$lib/components/NoEventBanner.svelte';
 
   const activeEvent = new Christmas2025();
 
@@ -169,6 +170,7 @@
 </script>
 
 <div class="space-y-12 max-w-4xl mx-auto">
+  <NoEventBanner />
   <div class="space-y-4">
     <div
       class="flex gap-4 md:gap-0 md:flex-row flex-col-reverse md:items-center justify-between pr-1"
