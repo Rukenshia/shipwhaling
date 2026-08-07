@@ -1,4 +1,5 @@
-import { Coal, FestiveCertificate, Steel, type Resource } from '$lib/resource';
+import { Coal, Steel, type Resource } from '$lib/resource';
+import { FestiveCertificate } from '$lib/resources/christmas2025';
 import type { Reward } from '$lib/reward';
 import type { Ship } from '$lib/ship';
 

@@ -20,10 +20,11 @@
     </dd>
   </div>
   <div>
-    <dt class="text-cyan-200 font-semibold">How can I track my progress?</dt>
+    <dt class="text-cyan-200 font-semibold">What does the planner remember?</dt>
     <dd>
-      Unlike previous versions, tracking your progress is not possible. The Additional Rewards for
-      achieving more than 1,000 Base XP make it a little bit too complicated to track.
+      Your Anniversary Shop selections are saved in this browser and restored when you return. The
+      site calculates all available Snowflake rewards, but it does not track which individual ships
+      you have already completed in game.
     </dd>
   </div>
   <div>

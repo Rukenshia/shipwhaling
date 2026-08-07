@@ -2,7 +2,6 @@
   import { Realm, login, user } from '$lib/store';
   import { onMount } from 'svelte';
   import { derived } from 'svelte/store';
-  import { type Reward } from '$lib/reward';
   import RewardStat from '$lib/components/RewardStat.svelte';
   import Faq from '$lib/components/FAQ.svelte';
 
@@ -12,27 +11,20 @@
   import type { Ship } from '$lib/ship';
 
   import bmcLogo from '$lib/assets/bmc-logo.svg';
-  import { Coal, Steel, type Resource } from '$lib/resource';
-  import RewardBreakdown from '$lib/components/RewardBreakdown.svelte';
+  import { Coal, FestiveTokens, Steel, type Resource } from '$lib/resource';
   import TabbedRewardBreakdown from '$lib/components/TabbedRewardBreakdown.svelte';
   import BattleCalculator from '$lib/components/BattleCalculator.svelte';
   import { slide } from 'svelte/transition';
   import ModifierSelect from '$lib/components/ModifierSelect.svelte';
   import { CoalPort, SteelPort } from '$lib/modifiers';
-  import { Christmas2025 } from '$lib/rewards/christmas2025';
-  import Christmas2025Shop from '$lib/components/events/Christmas2025Shop.svelte';
+  import { Anniversary2026 } from '$lib/rewards/anniversary2026';
+  import Anniversary2026Shop from '$lib/components/events/Anniversary2026Shop.svelte';
   import Box from '$lib/components/Box.svelte';
-  import {
-    createRewardsStore,
-    createEventStatsStore,
-    type EventStats
-  } from '$lib/rewardCalculator';
+  import { createRewardsStore, createEventStatsStore } from '$lib/rewardCalculator';
   import Tooltip from '$lib/components/Tooltip.svelte';
   import { prettyAmount } from '$lib/util';
-  import Collapsible from '$lib/components/Collapsible.svelte';
-  import NoEventBanner from '$lib/components/NoEventBanner.svelte';
 
-  const activeEvent = new Christmas2025();
+  const activeEvent = new Anniversary2026();
 
   let showSettings = $state(false);
   let coalModifier = $state(1);
@@ -66,7 +58,7 @@
       window.location.href = '/login';
     }
 
-    const unsubscribe = user.subscribe(($user) => {});
+    const unsubscribe = user.subscribe(() => {});
 
     return () => {
       unsubscribe();
@@ -80,52 +72,41 @@
     window.location.href = '/login';
   }
 
-  const shipsInPort = derived(user, async ($user) => {
+  function resolveShips(shipIds: number[], inPort: boolean): Ship[] {
+    const resolvedShips: Ship[] = [];
+
+    for (const shipId of shipIds) {
+      const ship = warships.data.find((candidate) => candidate.id === shipId);
+
+      if (!ship) {
+        console.warn(`unknown ship ${shipId}`);
+        continue;
+      }
+
+      resolvedShips.push({ ...ship, inPort });
+    }
+
+    return resolvedShips;
+  }
+
+  const shipsInPort = derived(user, async ($user): Promise<Ship[]> => {
     if (!$user) {
       return [];
     }
 
-    const ships = await $user.getShipsInPort();
+    const ships: number[] = await $user.getShipsInPort();
 
-    return ships
-      .map((shipId: number) => {
-        return (
-          warships.data.find((ship) => ship.id === shipId) || new Error(`unknown ship ${shipId}`)
-        );
-      })
-      .filter((shiporError: Ship | Error): shiporError is Ship => {
-        if (shiporError instanceof Error) {
-          console.warn(shiporError.message);
-          return false;
-        }
-
-        return true;
-      })
-      .map((s: any) => ({ ...s, inPort: true }));
+    return resolveShips(ships, true);
   });
 
-  const previouslyOwnedShips = derived(user, async ($user) => {
+  const previouslyOwnedShips = derived(user, async ($user): Promise<Ship[]> => {
     if (!$user) {
       return [];
     }
 
     const ships = await $user.getPreviouslyOwnedShipIds();
 
-    return ships
-      .map((shipId: number) => {
-        return (
-          warships.data.find((ship) => ship.id === shipId) || new Error(`unknown ship ${shipId}`)
-        );
-      })
-      .filter((shiporError: Ship | Error): shiporError is Ship => {
-        if (shiporError instanceof Error) {
-          console.warn(shiporError.message);
-          return false;
-        }
-
-        return true;
-      })
-      .map((s: any) => ({ ...s, inPort: false }));
+    return resolveShips(ships, false);
   });
 
   function applyModifier(
@@ -150,16 +131,9 @@
   const eventStats = createEventStatsStore(rewards, activeEvent);
   const previouslyOwnedEventStats = createEventStatsStore(previouslyOwnedRewards, activeEvent);
 
-  const maxAdditionalRewards = derived(shipsInPort, async ($shipsInPort) => {
-    const ships = await $shipsInPort;
-
-    return activeEvent.getMaxAdditionalRewards(ships.length);
-  });
-
-  // Calculate available festive certificates for the shop
-  const availableFestiveCertificates = derived(eventStats, async ($eventStats) => {
+  const availableFestiveTokens = derived(eventStats, async ($eventStats) => {
     const stats = await $eventStats;
-    return stats.rewards['Festive Certificate']?.total || 0;
+    return stats.rewards[FestiveTokens.name]?.total || 0;
   });
 
   const realmColors = {
@@ -170,29 +144,38 @@
 </script>
 
 <div class="space-y-12 max-w-4xl mx-auto">
-  <NoEventBanner />
   <div class="space-y-4">
     <div
       class="flex gap-4 md:gap-0 md:flex-row flex-col-reverse md:items-center justify-between pr-1"
     >
-      <Title size="text-4xl sm:text-6xl" align="left">
-        <div class="flex gap-4 items-center">
-          <div>Rewards</div>
-          <div>
-            <a
-              href="https://blog.worldofwarships.com/blog/holiday-celebrations-closed-test-1411"
-              target="_blank"
-              class="block bg-white/20 hover:bg-white/30 transition-colors duration-200 backdrop-blur border-white/40 border-2 px-4 py-1 sm:py-2 text-white text-base sm:text-lg"
-            >
-              Rules
-            </a>
-          </div>
-        </div>
+      <div class="min-w-0 flex-1 md:pr-6">
+        <Title size="text-3xl sm:text-5xl lg:text-6xl" align="left">
+          Anniversary Rewards
 
-        {#snippet subtitle()}
-          <div>The number of resources you can earn based on your ships in port.</div>
-        {/snippet}
-      </Title>
+          {#snippet subtitle()}
+            <div>The number of resources you can earn based on your ships in port.</div>
+          {/snippet}
+        </Title>
+        <div class="flex flex-wrap items-center gap-2">
+          <a
+            href="https://blog.worldofwarships.com/blog/closed-test-158-11th-anniversary-new-low-tier-operations-marlborough-b-dockyard-and-more"
+            target="_blank"
+            rel="noreferrer"
+            class="header inline-flex border-2 border-white/40 bg-white/20 px-4 py-2 text-sm font-semibold uppercase tracking-wider text-white backdrop-blur transition-colors duration-200 hover:bg-white/30"
+          >
+            View event rules
+          </a>
+          <a
+            href="https://buymeacoffee.com/rukenshia"
+            target="_blank"
+            rel="noreferrer"
+            class="header inline-flex items-center gap-2 border border-amber-200/30 bg-cyan-950/30 px-3 py-2 text-sm font-semibold text-amber-50/90 backdrop-blur transition-colors duration-200 hover:border-amber-200/60 hover:bg-amber-200/10 hover:text-white"
+          >
+            <img src={bmcLogo} alt="" class="h-4 w-4" />
+            Buy me a coffee
+          </a>
+        </div>
+      </div>
       <div
         class="flex-shrink w-full sm:w-auto sm:min-w-[16rem] bg-white/10 backdrop-blur p-2 text-white text-sm flex flex-col header items-center justify-center"
       >
@@ -258,7 +241,7 @@
     </div>
     <div class="space-y-8">
       <!-- Main rewards section -->
-      <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
         {#await Promise.all([$eventStats, $previouslyOwnedEventStats])}
           {#each activeEvent.possibleResources as resource}
             <RewardStat title={resource.name} icon={resource.image} value={0} />
@@ -276,7 +259,11 @@
                   steelModifier
                 )}
               >
-                from {currentRewards.rewards[resource.name].ships} ships in port
+                from {currentRewards.rewards[resource.name].ships} ship{currentRewards.rewards[
+                  resource.name
+                ].ships === 1
+                  ? ''
+                  : 's'} in port
                 {#if previousRewards.rewards[resource.name].total > 0}
                   <br />
                   <span class="block lg:hidden text-xs text-cyan-200/50">
@@ -311,7 +298,10 @@
                       )}
                       variant="compact"
                     >
-                      from {previousRewards.rewards[resource.name].ships} previously owned ships
+                      from {previousRewards.rewards[resource.name].ships} previously owned ship{previousRewards
+                        .rewards[resource.name].ships === 1
+                        ? ''
+                        : 's'}
                     </RewardStat>
                   </Tooltip>
                 </div>
@@ -327,15 +317,6 @@
               by converting all {currentRewards.conversions[conversionStat].source.name}
             </RewardStat>
           {/each}
-          <!-- {#await $maxAdditionalRewards}
-            <RewardStat title="Additional Rewards" value={0} />
-          {:then maxAdditionalRewards}
-            <RewardStat title="Additional Rewards" value={maxAdditionalRewards}>
-              Per battle over 1,000 Base XP
-            </RewardStat>
-          {:catch}
-            <RewardStat title="Additional Rewards" value={0} />
-          {/await} -->
         {:catch error}
           <ErrorMessage>{error.message}</ErrorMessage>
         {/await}
@@ -365,16 +346,16 @@
 
   <div>
     <Title size="text-4xl sm:text-6xl p-0 m-0" align="left">
-      Container Simulator
+      Anniversary Shop
 
       {#snippet subtitle()}
-        <div>Simulate opening Santa's Gift containers and view drop rates</div>
+        <div>Plan how to spend the Festive Tokens earned from ships in your current Port.</div>
       {/snippet}
     </Title>
-    {#await $shipsInPort}
+    {#await $availableFestiveTokens}
       Loading...
-    {:then shipsInPort}
-      <Christmas2025Shop {shipsInPort} />
+    {:then tokens}
+      <Anniversary2026Shop {tokens} />
     {:catch error}
       <ErrorMessage>{error.message}</ErrorMessage>
     {/await}

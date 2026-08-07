@@ -1,7 +1,6 @@
 <script lang="ts">
   import Box from '$lib/components/Box.svelte';
   import Faq from '$lib/components/FAQ.svelte';
-  import NoEventBanner from '$lib/components/NoEventBanner.svelte';
   import Title from '$lib/components/Title.svelte';
   import { Realm } from '$lib/store';
 
@@ -30,8 +29,6 @@
 </script>
 
 <div class="space-y-8 max-w-2xl mx-auto">
-  <NoEventBanner />
-
   <Box variant="dark">
     <Title>
       Select a Server to log in
@@ -58,8 +55,8 @@
       <Title align="left">About</Title>
 
       <p>
-        This website is a tool to help you plan your Christmas Event rewards. In order to do that,
-        you need to log in with your Wargaming account.
+        This website helps you calculate and plan your World of Warships 11th Anniversary rewards.
+        To inspect the ships in your Port, you need to log in with your Wargaming account.
       </p>
     </div>
 

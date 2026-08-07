@@ -1,5 +1,6 @@
-import { BaseXP, Coal, FestiveCertificate, Steel, type Resource } from '$lib/resource';
+import { BaseXP, Coal, Steel, type Resource } from '$lib/resource';
 import type { Reward } from '$lib/reward';
+import { FestiveCertificate } from '$lib/resources/christmas2025';
 import type { Ship } from '$lib/ship';
 
 export class Christmas2025 {

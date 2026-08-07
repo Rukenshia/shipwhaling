@@ -5,14 +5,14 @@
 <div class="space-y-8">
   <div class="max-w-xl mx-auto rounded p-8 bg-slate-950/20 shadow-inner inset-0">
     <Title>
-      Waiting for Santa
+      11th Anniversary
 
       {#snippet subtitle()}
-            <div >
-          See you when the <a href="https://blog.worldofwarships.com/blog/568">Festive Rewards</a> are
-          back.
+        <div>
+          Festive Rewards are available. <a class="underline" href="/">Open the event calculator</a
+          >.
         </div>
-          {/snippet}
+      {/snippet}
     </Title>
   </div>
 </div>

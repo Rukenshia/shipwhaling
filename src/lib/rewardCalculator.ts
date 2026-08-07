@@ -1,5 +1,6 @@
 import type { Readable } from 'svelte/store';
 import { derived } from 'svelte/store';
+import type { Container } from './container';
 import type { Ship } from './ship';
 import type { Reward } from './reward';
 import type { Resource } from './resource';
@@ -13,7 +14,7 @@ export interface EventStats {
   };
   conversions: {
     [key: string]: {
-      container: any;
+      container: Container;
       source: Resource;
       total: number;
     };
@@ -24,6 +25,12 @@ export interface EventStats {
 export interface RewardCalculatorEvent {
   calculateShipReward(ship: Ship): Reward | undefined;
   possibleResources: Resource[];
+}
+
+export interface BattleCalculatorEvent extends RewardCalculatorEvent {
+  getMaxAdditionalRewards(shipsInPort: number): number;
+  getBaseXPRequirement(tier: number): number;
+  getAdditionalRewardXPRequirement(): number;
 }
 
 /**

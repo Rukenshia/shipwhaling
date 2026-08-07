@@ -1,7 +1,7 @@
 <script lang="ts">
   import '../app.css';
 
-  import whale from '$lib/assets/christmas.png';
+  import whale from '$lib/assets/whale.gif';
 
   interface Props {
     children?: import('svelte').Snippet;
@@ -28,12 +28,12 @@
       ></div>
     </div>
   </div>
-  <div class="flex-grow relative z-10 min-h-screen pt-32">
+  <div class="flex-grow relative z-10 min-h-screen pt-8 lg:pt-32">
     <div
-      class="grid grid-cols-1 lg:grid-cols-10 xl:grid-cols-12 gap-4 px-4 lg:px-16 text-cyan-50 mt-16"
+      class="grid grid-cols-1 lg:grid-cols-10 xl:grid-cols-12 gap-4 px-4 lg:px-16 text-cyan-50 mt-8 lg:mt-16"
     >
-      <div class="col-span-1 lg:col-span-10 xl:col-span-12 mx-auto">
-        <img src={whale} alt="Whale" class="h-64 mx-auto" />
+      <div class="col-span-1 lg:col-span-10 xl:col-span-12 mx-auto mb-16">
+        <img src={whale} alt="Animated anniversary gift" class="h-64 mx-auto" />
 
         <h1
           class="text-center text-3xl sm:text-4xl lg:text-6xl text-white font-bold drop-shadow-2xl uppercase"
@@ -41,7 +41,7 @@
           WARSHIP WHALING
         </h1>
         <h2 class="text-center text-base sm:text-xl lg:text-2xl text-cyan-50/80 drop-shadow-2xl">
-          Plan your Christmas Event Rewards
+          Plan your 11th Anniversary Rewards
         </h2>
       </div>
       <div class="col-span-1 lg:col-start-1 lg:col-span-9 xl:col-start-2 xl:col-span-10">
@@ -63,6 +63,6 @@
 
 <style>
   #wallpaper {
-    background-image: url('$lib/assets/wallpaper.jpeg');
+    background-image: url('/social_banner.jpg');
   }
 </style>

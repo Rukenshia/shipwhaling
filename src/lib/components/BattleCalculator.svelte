@@ -1,28 +1,26 @@
 <script lang="ts">
   import type { Reward } from '$lib/reward';
-  import type { Christmas2025 } from '$lib/rewards/christmas2025';
+  import type { BattleCalculatorEvent } from '$lib/rewardCalculator';
   import type { Ship } from '$lib/ship';
   import Collapsible from '$lib/components/Collapsible.svelte';
   import Box from './Box.svelte';
 
   let { activeEvent, shipsInPort } = $props<{
-    activeEvent: Christmas2025;
+    activeEvent: BattleCalculatorEvent;
     shipsInPort: Ship[];
   }>();
 
   let averageBaseXP = $state(800);
   let calculatedBattles = $state(0);
-  let additionalRewards = $state(0);
 
   $effect(() => {
     if (activeEvent && shipsInPort.length > 0) {
-      additionalRewards = activeEvent.getMaxAdditionalRewards(shipsInPort.length);
       calculateBattles();
     }
   });
 
   function calculateBattles() {
-    if (averageBaseXP <= 0 || shipsInPort <= 0) {
+    if (averageBaseXP <= 0 || shipsInPort.length === 0) {
       calculatedBattles = 0;
       return;
     }
@@ -33,7 +31,7 @@
       })
       .filter((r: Reward | undefined) => r !== undefined);
 
-    const baseXpForAdditionalRewards = activeEvent.getAdditionalRewardXPRequirement(shipsInPort);
+    const baseXpForAdditionalRewards = activeEvent.getAdditionalRewardXPRequirement();
     const totalUnlocks = allRewards.length;
 
     let unlocks = 0;
@@ -137,7 +135,7 @@
     <!-- Mission Breakdown -->
     <Collapsible>
       {#snippet title()}
-        How The Christmas Event Works
+        How Festive Rewards Work
       {/snippet}
       {#snippet children()}
         <div class="space-y-3">
@@ -173,9 +171,13 @@
               </div>
               <div class="text-sm text-cyan-300 space-y-1">
                 <div>
-                  Earn {activeEvent.getAdditionalRewardXPRequirement(shipsInPort)} Base XP over any number
-                  of battles to get {activeEvent.getMaxAdditionalRewards(shipsInPort.length)} additional
-                  unlocks (based on your port with {shipsInPort.length} ships)
+                  Earn {activeEvent.getAdditionalRewardXPRequirement()} Base XP over any number of battles
+                  to get {activeEvent.getMaxAdditionalRewards(shipsInPort.length)} additional unlock{activeEvent.getMaxAdditionalRewards(
+                    shipsInPort.length
+                  ) === 1
+                    ? ''
+                    : 's'}
+                  (based on your port with {shipsInPort.length} ships)
                 </div>
               </div>
             </div>
