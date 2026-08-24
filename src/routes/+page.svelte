@@ -144,6 +144,34 @@
 </script>
 
 <div class="space-y-12 max-w-4xl mx-auto">
+  <aside
+    class="header flex items-start gap-3 border-2 border-amber-300/40 bg-amber-950/50 px-4 py-3 text-amber-50 shadow-lg backdrop-blur sm:items-center sm:px-5"
+    aria-label="Event start information"
+  >
+    <svg
+      class="mt-0.5 h-5 w-5 flex-none text-amber-300 sm:mt-0"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path
+        fill-rule="evenodd"
+        d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-3a1 1 0 1 0-2 0 1 1 0 0 0 2 0ZM9 9a1 1 0 0 0 0 2v2a1 1 0 1 0 0 2h1a1 1 0 1 0 0-2v-3a1 1 0 0 0-1-1Z"
+        clip-rule="evenodd"
+      />
+    </svg>
+    <p class="text-sm leading-5 sm:text-base">
+      The 11th Anniversary event starts with the release of
+      <a
+        href="https://blog.worldofwarships.com/blog/closed-test-158-11th-anniversary-new-low-tier-operations-marlborough-b-dockyard-and-more"
+        target="_blank"
+        rel="noreferrer"
+        class="font-semibold text-amber-200 underline decoration-amber-300/60 underline-offset-2 transition-colors hover:text-white"
+        >Update 15.8</a
+      >.
+    </p>
+  </aside>
+
   <div class="space-y-4">
     <div
       class="flex gap-4 md:gap-0 md:flex-row flex-col-reverse md:items-center justify-between pr-1"

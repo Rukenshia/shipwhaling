@@ -7,5 +7,5 @@ tasks:
 
   deploy:
     cmds:
-      - aws s3 sync --delete build/ s3://whaling.in.fkn.space
-      - aws cloudfront create-invalidation --distribution-id E70E85S3UWCMA --paths "/*"
+      - aws --profile chrstphrsn s3 sync --delete build/ s3://whaling.in.fkn.space
+      - aws --profile chrstphrsn cloudfront create-invalidation --distribution-id E70E85S3UWCMA --paths "/*"

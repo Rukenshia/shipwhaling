@@ -72,6 +72,30 @@ class User {
     return response.data.data[this.account_id].private.port;
   }
 
+  public async getBattleLifeTime(): Promise<number> {
+    if (this.isTokenExpired()) {
+      throw new Error('Token expired');
+    }
+
+    const response = await axios.get(
+      `https://api.worldofwarships.${this.realm}/wows/account/info/`,
+      {
+        params: {
+          ...this.getQueryParams(),
+          fields: 'private.battle_life_time'
+        }
+      }
+    );
+
+    const battleLifeTime = response.data.data?.[this.account_id]?.private?.battle_life_time;
+
+    if (typeof battleLifeTime !== 'number' || battleLifeTime < 0) {
+      throw new Error('Battle lifetime is unavailable');
+    }
+
+    return battleLifeTime;
+  }
+
   public async getPreviouslyOwnedShipIds(): Promise<number[]> {
     if (this.isTokenExpired()) {
       throw new Error('Token expired');
