@@ -1,8 +1,21 @@
 <script lang="ts">
+  import type { Reward } from '$lib/reward';
+  import type { Ship } from '$lib/ship';
   import RewardBreakdown from './RewardBreakdown.svelte';
-  import Box from './Box.svelte';
 
-  let { currentRewards, previouslyOwnedRewards } = $props();
+  type RewardWithShip = Reward & { ship: Ship };
+
+  let {
+    currentRewards,
+    previouslyOwnedRewards,
+    excludedPreviouslyOwnedShipIds,
+    onPreviouslyOwnedShipInclusionChange
+  }: {
+    currentRewards: RewardWithShip[];
+    previouslyOwnedRewards: RewardWithShip[];
+    excludedPreviouslyOwnedShipIds: ReadonlySet<number>;
+    onPreviouslyOwnedShipInclusionChange: (shipId: number, included: boolean) => void;
+  } = $props();
 
   let activeTab = $state('current');
 
@@ -38,6 +51,11 @@
   {#if activeTab === 'current'}
     <RewardBreakdown rewards={currentRewards} />
   {:else if activeTab === 'previously-owned'}
-    <RewardBreakdown rewards={previouslyOwnedRewards} />
+    <RewardBreakdown
+      rewards={previouslyOwnedRewards}
+      selectable
+      excludedShipIds={excludedPreviouslyOwnedShipIds}
+      onShipInclusionChange={onPreviouslyOwnedShipInclusionChange}
+    />
   {/if}
 </div>

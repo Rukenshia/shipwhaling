@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Realm, login, user } from '$lib/store';
   import { onMount } from 'svelte';
-  import { derived } from 'svelte/store';
+  import { derived, writable } from 'svelte/store';
   import RewardStat from '$lib/components/RewardStat.svelte';
   import Faq from '$lib/components/FAQ.svelte';
 
@@ -25,10 +25,53 @@
   import { prettyAmount } from '$lib/util';
 
   const activeEvent = new Anniversary2026();
+  const excludedPreviouslyOwnedShipIdsStorageKey = 'shipwhaling:excluded-previously-owned-ship-ids';
 
   let showSettings = $state(false);
   let coalModifier = $state(1);
   let steelModifier = $state(1);
+  const excludedPreviouslyOwnedShipIds = writable<ReadonlySet<number>>(new Set());
+
+  function loadExcludedPreviouslyOwnedShipIds(): Set<number> {
+    const storedValue = localStorage.getItem(excludedPreviouslyOwnedShipIdsStorageKey);
+
+    if (!storedValue) {
+      return new Set();
+    }
+
+    try {
+      const parsedValue: unknown = JSON.parse(storedValue);
+
+      if (!Array.isArray(parsedValue)) {
+        return new Set();
+      }
+
+      return new Set(
+        parsedValue.filter((shipId): shipId is number => Number.isInteger(shipId) && shipId > 0)
+      );
+    } catch {
+      return new Set();
+    }
+  }
+
+  function setPreviouslyOwnedShipIncluded(shipId: number, included: boolean) {
+    excludedPreviouslyOwnedShipIds.update((excludedShipIds) => {
+      const nextExcludedShipIds = new Set(excludedShipIds);
+
+      if (included) {
+        nextExcludedShipIds.delete(shipId);
+      } else {
+        nextExcludedShipIds.add(shipId);
+      }
+
+      localStorage.setItem(
+        excludedPreviouslyOwnedShipIdsStorageKey,
+        JSON.stringify([...nextExcludedShipIds].sort((a, b) => a - b))
+      );
+
+      return nextExcludedShipIds;
+    });
+  }
 
   function saveModifiers() {
     localStorage.setItem('coalModifier', `${coalModifier}`);
@@ -39,6 +82,7 @@
     // load modifiers
     coalModifier = parseFloat(localStorage.getItem('coalModifier') || '1');
     steelModifier = parseFloat(localStorage.getItem('steelModifier') || '1');
+    excludedPreviouslyOwnedShipIds.set(loadExcludedPreviouslyOwnedShipIds());
 
     // try to init user from local storage
     const storedUser = localStorage.getItem('user');
@@ -109,6 +153,13 @@
     return resolveShips(ships, false);
   });
 
+  const includedPreviouslyOwnedShips = derived(
+    [previouslyOwnedShips, excludedPreviouslyOwnedShipIds],
+    async ([$ships, $excludedShipIds]): Promise<Ship[]> => {
+      return (await $ships).filter((ship) => !$excludedShipIds.has(ship.id));
+    }
+  );
+
   function applyModifier(
     value: number,
     resource: Resource,
@@ -127,9 +178,16 @@
 
   const rewards = createRewardsStore(shipsInPort, activeEvent);
   const previouslyOwnedRewards = createRewardsStore(previouslyOwnedShips, activeEvent);
+  const includedPreviouslyOwnedRewards = createRewardsStore(
+    includedPreviouslyOwnedShips,
+    activeEvent
+  );
 
   const eventStats = createEventStatsStore(rewards, activeEvent);
-  const previouslyOwnedEventStats = createEventStatsStore(previouslyOwnedRewards, activeEvent);
+  const previouslyOwnedEventStats = createEventStatsStore(
+    includedPreviouslyOwnedRewards,
+    activeEvent
+  );
 
   const availableFestiveTokens = derived(eventStats, async ($eventStats) => {
     const stats = await $eventStats;
@@ -395,15 +453,20 @@
 
       {#snippet subtitle()}
         <div>
-          A list of all ships that were considered for the calculations on this page. You might be
-          able to buy more ships for additional rewards.
+          Choose which previously owned ships to include in the calculations. Your exclusions are
+          saved in this browser.
         </div>
       {/snippet}
     </Title>
     {#await Promise.all([$rewards, $previouslyOwnedRewards])}
       Loading
     {:then [rewards, previouslyOwnedRewards]}
-      <TabbedRewardBreakdown currentRewards={rewards} {previouslyOwnedRewards} />
+      <TabbedRewardBreakdown
+        currentRewards={rewards}
+        {previouslyOwnedRewards}
+        excludedPreviouslyOwnedShipIds={$excludedPreviouslyOwnedShipIds}
+        onPreviouslyOwnedShipInclusionChange={setPreviouslyOwnedShipIncluded}
+      />
     {:catch error}
       <ErrorMessage>{error.message}</ErrorMessage>
     {/await}
