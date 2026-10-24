@@ -3,18 +3,14 @@
   import { type Container, type Item, type ItemDrop } from '$lib/container';
   import DiceIcon from '../DiceIcon.svelte';
   import BoxSelect from '../BoxSelect.svelte';
-  import { SantasGiftContainer2025 } from '$lib/containers/2025-santas-gift-container';
-  import { SantasMegaGiftContainer2025 } from '$lib/containers/2025-santas-mega-gift-container';
-  import { SantasUltraGiftContainer2025 } from '$lib/containers/2025-santas-ultra-gift-container';
   import Box from '../Box.svelte';
-  import { GoldenContainer2025 } from '$lib/containers/2025-golden-container';
   import ContainerDrop from '../ContainerDrop.svelte';
   import { prettyAmount } from '$lib/util';
   import type { Ship } from '$lib/ship';
 
-  let { shipsInPort }: { shipsInPort: Ship[] } = $props();
+  let { shipsInPort, containers }: { shipsInPort: Ship[]; containers: Container[] } = $props();
 
-  let selectedContainer: Container = $state(SantasGiftContainer2025);
+  let selectedContainer: Container = $state(containers[0]);
 
   // Container with ships we don't have
   let container = $derived({
@@ -254,28 +250,7 @@
     <div class="col-span-full lg:col-span-2 flex flex-col gap-4">
       <div class="grid grid-cols-4 lg:grid-cols-2 gap-4">
         <BoxSelect
-          choices={[
-            {
-              icon: SantasGiftContainer2025.icon,
-              name: SantasGiftContainer2025.name,
-              value: SantasGiftContainer2025
-            },
-            {
-              icon: SantasMegaGiftContainer2025.icon,
-              name: SantasMegaGiftContainer2025.name,
-              value: SantasMegaGiftContainer2025
-            },
-            {
-              icon: SantasUltraGiftContainer2025.icon,
-              name: SantasUltraGiftContainer2025.name,
-              value: SantasUltraGiftContainer2025
-            },
-            {
-              icon: GoldenContainer2025.icon,
-              name: GoldenContainer2025.name,
-              value: GoldenContainer2025
-            }
-          ]}
+          choices={containers.map((c) => ({ icon: c.icon, name: c.name, value: c }))}
           selected={container}
           disabled={gambling}
           onSelected={(value: Container) => {

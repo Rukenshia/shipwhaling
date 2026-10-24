@@ -55,8 +55,8 @@
       <Title align="left">About</Title>
 
       <p>
-        This website helps you calculate and plan your World of Warships 11th Anniversary rewards.
-        To inspect the ships in your Port, you need to log in with your Wargaming account.
+        This website helps you calculate and plan your World of Warships Christmas event rewards. To
+        inspect the ships in your Port, you need to log in with your Wargaming account.
       </p>
     </div>
 

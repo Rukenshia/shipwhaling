@@ -5,7 +5,7 @@
 <div class="space-y-8">
   <div class="max-w-xl mx-auto rounded p-8 bg-slate-950/20 shadow-inner inset-0">
     <Title>
-      11th Anniversary
+      Christmas Event
 
       {#snippet subtitle()}
         <div>

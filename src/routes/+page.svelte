@@ -11,20 +11,20 @@
   import type { Ship } from '$lib/ship';
 
   import bmcLogo from '$lib/assets/bmc-logo.svg';
-  import { Coal, FestiveTokens, Steel, type Resource } from '$lib/resource';
+  import { Coal, Steel, type Resource } from '$lib/resource';
   import TabbedRewardBreakdown from '$lib/components/TabbedRewardBreakdown.svelte';
   import BattleCalculator from '$lib/components/BattleCalculator.svelte';
   import { slide } from 'svelte/transition';
   import ModifierSelect from '$lib/components/ModifierSelect.svelte';
   import { CoalPort, SteelPort } from '$lib/modifiers';
-  import { Anniversary2026 } from '$lib/rewards/anniversary2026';
-  import Anniversary2026Shop from '$lib/components/events/Anniversary2026Shop.svelte';
+  import { Christmas2026 } from '$lib/rewards/christmas2026';
+  import Christmas2026Shop from '$lib/components/events/Christmas2026Shop.svelte';
   import Box from '$lib/components/Box.svelte';
   import { createRewardsStore, createEventStatsStore } from '$lib/rewardCalculator';
   import Tooltip from '$lib/components/Tooltip.svelte';
   import { prettyAmount } from '$lib/util';
 
-  const activeEvent = new Anniversary2026();
+  const activeEvent = new Christmas2026();
   const excludedPreviouslyOwnedShipIdsStorageKey = 'shipwhaling:excluded-previously-owned-ship-ids';
 
   let showSettings = $state(false);
@@ -189,11 +189,6 @@
     activeEvent
   );
 
-  const availableFestiveTokens = derived(eventStats, async ($eventStats) => {
-    const stats = await $eventStats;
-    return stats.rewards[FestiveTokens.name]?.total || 0;
-  });
-
   const realmColors = {
     [Realm.EU]: 'text-cyan-300',
     [Realm.NA]: 'text-rose-400',
@@ -219,14 +214,15 @@
       />
     </svg>
     <p class="text-sm leading-5 sm:text-base">
-      The 11th Anniversary event starts with the release of
+      Festive Rewards start with the release of
       <a
-        href="https://blog.worldofwarships.com/blog/closed-test-158-11th-anniversary-new-low-tier-operations-marlborough-b-dockyard-and-more"
+        href="https://blog.worldofwarships.com/"
         target="_blank"
         rel="noreferrer"
         class="font-semibold text-amber-200 underline decoration-amber-300/60 underline-offset-2 transition-colors hover:text-white"
-        >Update 15.8</a
-      >.
+        >Update 15.11</a
+      >. Don't forget your New Year Gift: log in during the first four weeks to pick a free Tier IX
+      ship (Alsace, Lion, Encounter, Takahashi or Udaloi).
     </p>
   </aside>
 
@@ -236,7 +232,7 @@
     >
       <div class="min-w-0 flex-1 md:pr-6">
         <Title size="text-3xl sm:text-5xl lg:text-6xl" align="left">
-          Anniversary Rewards
+          Festive Rewards
 
           {#snippet subtitle()}
             <div>The number of resources you can earn based on your ships in port.</div>
@@ -244,7 +240,7 @@
         </Title>
         <div class="flex flex-wrap items-center gap-2">
           <a
-            href="https://blog.worldofwarships.com/blog/closed-test-158-11th-anniversary-new-low-tier-operations-marlborough-b-dockyard-and-more"
+            href="https://blog.worldofwarships.com/"
             target="_blank"
             rel="noreferrer"
             class="header inline-flex border-2 border-white/40 bg-white/20 px-4 py-2 text-sm font-semibold uppercase tracking-wider text-white backdrop-blur transition-colors duration-200 hover:bg-white/30"
@@ -327,7 +323,7 @@
     </div>
     <div class="space-y-8">
       <!-- Main rewards section -->
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-3">
         {#await Promise.all([$eventStats, $previouslyOwnedEventStats])}
           {#each activeEvent.possibleResources as resource}
             <RewardStat title={resource.name} icon={resource.image} value={0} />
@@ -432,16 +428,16 @@
 
   <div>
     <Title size="text-4xl sm:text-6xl p-0 m-0" align="left">
-      Anniversary Shop
+      Container Simulator
 
       {#snippet subtitle()}
-        <div>Plan how to spend the Festive Tokens earned from ships in your current Port.</div>
+        <div>Simulate opening Santa's Gift containers and view drop rates</div>
       {/snippet}
     </Title>
-    {#await $availableFestiveTokens}
+    {#await $shipsInPort}
       Loading...
-    {:then tokens}
-      <Anniversary2026Shop {tokens} />
+    {:then shipsInPort}
+      <Christmas2026Shop {shipsInPort} />
     {:catch error}
       <ErrorMessage>{error.message}</ErrorMessage>
     {/await}

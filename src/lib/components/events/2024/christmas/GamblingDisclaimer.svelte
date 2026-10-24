@@ -3,6 +3,9 @@
   import GamblingSimulator from '../../GamblingSimulator.svelte';
   import { onMount } from 'svelte';
   import type { Ship } from '$lib/ship';
+  import { SantasGiftContainer } from '$lib/containers/2024-santas-gift-container';
+  import { SantasMegaGiftContainer } from '$lib/containers/2024-santas-mega-gift-container';
+  import { GoldenContainer } from '$lib/containers/2024-golden-container';
 
   let shipsInPort = $props<{
     shipsInPort: Ship[];
@@ -21,7 +24,10 @@
 </script>
 
 <div class="p-2" class:relative={!readAndUnderstood}>
-  <GamblingSimulator {shipsInPort} />
+  <GamblingSimulator
+    {shipsInPort}
+    containers={[SantasGiftContainer, SantasMegaGiftContainer, GoldenContainer]}
+  />
   {#if !readAndUnderstood}
     <div
       transition:fade

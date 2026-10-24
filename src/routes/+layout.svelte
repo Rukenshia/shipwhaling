@@ -1,7 +1,7 @@
 <script lang="ts">
   import '../app.css';
 
-  import whale from '$lib/assets/whale.gif';
+  import whale from '$lib/assets/christmas.png';
 
   interface Props {
     children?: import('svelte').Snippet;
@@ -17,9 +17,7 @@
     rel="noopener noreferrer"
     class="group relative z-20 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5 border-b border-amber-200/25 bg-cyan-950/85 px-4 py-2.5 text-center backdrop-blur-sm transition hover:border-amber-200/50 hover:bg-cyan-900/85 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-amber-300"
   >
-    <span
-      class="header text-xs font-medium uppercase tracking-wider text-cyan-100/85 sm:text-sm"
-    >
+    <span class="header text-xs font-medium uppercase tracking-wider text-cyan-100/85 sm:text-sm">
       <svg
         viewBox="0 0 22 12"
         aria-hidden="true"
@@ -35,10 +33,7 @@
       >
         Check out the Holiday Convoy Planner
       </span>
-      <span
-        aria-hidden="true"
-        class="inline-block transition-transform group-hover:translate-x-1"
-      >
+      <span aria-hidden="true" class="inline-block transition-transform group-hover:translate-x-1">
         →
       </span>
     </span>
@@ -66,7 +61,7 @@
       class="grid grid-cols-1 lg:grid-cols-10 xl:grid-cols-12 gap-4 px-4 lg:px-16 text-cyan-50 mt-8 lg:mt-16"
     >
       <div class="col-span-1 lg:col-span-10 xl:col-span-12 mx-auto mb-16">
-        <img src={whale} alt="Animated anniversary gift" class="h-64 mx-auto" />
+        <img src={whale} alt="Christmas whale" class="h-64 mx-auto" />
 
         <h1
           class="text-center text-3xl sm:text-4xl lg:text-6xl text-white font-bold drop-shadow-2xl uppercase"
@@ -74,7 +69,7 @@
           WARSHIP WHALING
         </h1>
         <h2 class="text-center text-base sm:text-xl lg:text-2xl text-cyan-50/80 drop-shadow-2xl">
-          Plan your 11th Anniversary Rewards
+          Plan your Christmas Event Rewards
         </h2>
       </div>
       <div class="col-span-1 lg:col-start-1 lg:col-span-9 xl:col-start-2 xl:col-span-10">
@@ -96,7 +91,7 @@
 
 <style>
   #wallpaper {
-    background-image: url('/social_banner.jpg');
+    background-image: url('$lib/assets/wallpaper.jpeg');
   }
 
   .pennant {
