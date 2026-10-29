@@ -97,6 +97,13 @@
   let detailsDrop: ItemDrop | undefined = $state(undefined);
   let detailsOpen = $state(false);
   let revealPanel: HTMLElement | undefined = $state(undefined);
+  let revealScroll: HTMLElement | undefined = $state(undefined);
+
+  // start every new reveal at the top of the scrollable results
+  $effect(() => {
+    void revealKey;
+    if (revealScroll) revealScroll.scrollTop = 0;
+  });
 
   function createSimState() {
     return createState(shipsInPort.map((ship) => ship.name));
@@ -419,145 +426,138 @@
       </div>
 
       <!-- Reveal -->
+      <!-- fixed height (the stage column's height on desktop) so results scroll instead of resizing the simulator -->
       <div
-        class="flex min-h-72 flex-col gap-4 border-t border-white/10 p-6 lg:border-l lg:border-t-0 lg:p-8"
+        class="relative h-[28rem] border-t border-white/10 lg:h-auto lg:border-l lg:border-t-0"
         aria-live="polite"
         bind:this={revealPanel}
       >
-        <div class="header text-sm font-semibold uppercase tracking-widest text-cyan-300">
-          {lastBatch ? `Opened ${prettyAmount(lastBatch.opened)} containers` : 'Your drop'}
-        </div>
-
-        {#if phase === 'opening'}
-          <div class="flex flex-1 items-center justify-center text-gray-400">
-            <span class="header animate-pulse uppercase tracking-widest">Unwrapping…</span>
+        <div class="absolute inset-0 flex flex-col gap-4 p-6 lg:p-8">
+          <div class="header text-sm font-semibold uppercase tracking-widest text-cyan-300">
+            {lastBatch ? `Opened ${prettyAmount(lastBatch.opened)} containers` : 'Your drop'}
           </div>
-        {:else if lastBatch}
-          {#key revealKey}
-            <div in:scale={{ start: 0.9, duration: 250 }} class="flex flex-col gap-4">
-              <div class="grid grid-cols-2 gap-3">
-                <div class="bg-slate-950/40 p-3">
-                  <div class="header text-xs uppercase tracking-wide text-gray-400">Ships</div>
-                  <div class="font-sans text-2xl font-bold text-white">
-                    {prettyAmount(lastBatch.ships.length)}
-                  </div>
-                </div>
-                <div class="bg-slate-950/40 p-3">
-                  <div class="header text-xs uppercase tracking-wide text-gray-400">
-                    Containers per ship
-                  </div>
-                  <div class="font-sans text-2xl font-bold text-white">
-                    {lastBatch.ships.length
-                      ? prettyAmount(Math.round(lastBatch.opened / lastBatch.ships.length))
-                      : '—'}
-                  </div>
-                </div>
+
+          <div
+            class="reveal-scroll -mr-2 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-2"
+            bind:this={revealScroll}
+          >
+            {#if phase === 'opening'}
+              <div class="flex flex-1 items-center justify-center text-gray-400">
+                <span class="header animate-pulse uppercase tracking-widest">Unwrapping…</span>
               </div>
-              {#if lastBatch.ships.length}
-                <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {#each lastBatch.ships.slice(0, 6) as ship}
-                    {@render shipCard(ship)}
-                  {/each}
-                </div>
-                {#if lastBatch.ships.length > 6}
-                  <div class="text-sm normal-case text-gray-400">
-                    and {prettyAmount(lastBatch.ships.length - 6)} more under "Ships received"
-                  </div>
-                {/if}
-              {:else if !lastBatch.shipsAvailable}
-                <p class="text-sm normal-case text-gray-300">
-                  {lastBatch.conditionalActive
-                    ? 'You already own every regular ship in this container, so its drop chance went to the rarer rewards instead.'
-                    : 'You already own every ship this container can drop, so ship rolls give the compensation listed below instead.'}
-                </p>
-              {:else}
-                <p class="text-sm normal-case text-gray-300">
-                  No ships in {prettyAmount(lastBatch.opened)} opening{lastBatch.opened === 1
-                    ? ''
-                    : 's'}. On average you would get {lastBatch.expectedShips < 1
-                    ? 'less than one'
-                    : `about ${percent.format(Math.round(lastBatch.expectedShips * 10) / 10)}`}.
-                </p>
-              {/if}
-              {#if lastBatch.loot.length}
-                <div class="flex flex-col gap-2">
-                  <div class="header text-xs uppercase tracking-wide text-gray-400">
-                    Other rewards
-                  </div>
-                  {@render lootList(lastBatch.loot)}
-                </div>
-              {/if}
-            </div>
-          {/key}
-        {:else if lastResult}
-          {@const rarity = rarityStyles[dropRarity(lastResult.drop)]}
-          {@const reward = lastResult.item ?? lastResult.compensation}
-          {@const icon = itemIcon(reward)}
-          {#key revealKey}
-            <div
-              in:scale={{ start: 0.6, duration: 450, easing: backOut }}
-              class="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center outline outline-2 -outline-offset-2 {rarity.outline} {rarity.bg} {rarity.glow}"
-            >
-              <div class="flex h-28 w-full items-center justify-center">
-                {#if icon}
-                  <img
-                    src={icon}
-                    alt=""
-                    class="max-h-full max-w-full object-contain {lastResult.item?.ship
-                      ? ''
-                      : 'h-20 w-20'}"
-                  />
-                {:else}
-                  {@render giftGlyph(`h-20 w-20 ${rarity.text}`)}
-                {/if}
-              </div>
-              <div>
-                <div class="header text-xs font-semibold uppercase tracking-widest {rarity.text}">
-                  {rarity.label}
-                  {#if lastResult.guaranteed}· Guaranteed{/if}
-                </div>
-                <div class="mt-1 text-2xl font-bold normal-case text-white">
-                  {#if reward}
-                    {#if reward.ship}
-                      <span class="text-amber-200">{tiers[reward.ship.tier - 1]}</span>
-                    {:else if reward.amount > 1}
-                      {prettyAmount(reward.amount)}
-                    {/if}
-                    {lootName(reward.name)}
+            {:else if lastBatch}
+              {#key revealKey}
+                <div in:scale={{ start: 0.9, duration: 250 }} class="flex flex-col gap-4">
+                  {#if lastBatch.ships.length}
+                    <div class="flex flex-col gap-2">
+                      <div class="header text-xs uppercase tracking-wide text-gray-400">
+                        Ships · {prettyAmount(lastBatch.ships.length)}
+                      </div>
+                      <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                        {#each lastBatch.ships as ship}
+                          {@render shipCard(ship)}
+                        {/each}
+                      </div>
+                    </div>
+                  {:else if !lastBatch.shipsAvailable}
+                    <p class="text-sm normal-case text-gray-300">
+                      {lastBatch.conditionalActive
+                        ? 'You already own every regular ship in this container, so its drop chance went to the rarer rewards instead.'
+                        : 'You already own every ship this container can drop, so ship rolls give the compensation listed below instead.'}
+                    </p>
                   {:else}
-                    Compensation
+                    <p class="text-sm normal-case text-gray-300">
+                      No ships in {prettyAmount(lastBatch.opened)} opening{lastBatch.opened === 1
+                        ? ''
+                        : 's'}. On average you would get {lastBatch.expectedShips < 1
+                        ? 'less than one'
+                        : `about ${percent.format(Math.round(lastBatch.expectedShips * 10) / 10)}`}.
+                    </p>
+                  {/if}
+                  {#if lastBatch.loot.length}
+                    <div class="flex flex-col gap-2">
+                      <div class="header text-xs uppercase tracking-wide text-gray-400">
+                        Other rewards
+                      </div>
+                      {@render lootList(lastBatch.loot)}
+                    </div>
                   {/if}
                 </div>
-                <div class="mt-1 text-sm normal-case text-gray-400">
-                  {lastResult.item
-                    ? lastResult.drop.name
-                    : `${lastResult.drop.name}: you already own every ship in it`}
+              {/key}
+            {:else if lastResult}
+              {@const rarity = rarityStyles[dropRarity(lastResult.drop)]}
+              {@const reward = lastResult.item ?? lastResult.compensation}
+              {@const icon = itemIcon(reward)}
+              {#key revealKey}
+                <div
+                  in:scale={{ start: 0.6, duration: 450, easing: backOut }}
+                  class="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center outline outline-2 -outline-offset-2 {rarity.outline} {rarity.bg} {rarity.glow}"
+                >
+                  <div class="flex h-28 w-full items-center justify-center">
+                    {#if icon}
+                      <img
+                        src={icon}
+                        alt=""
+                        class="max-h-full max-w-full object-contain {lastResult.item?.ship
+                          ? ''
+                          : 'h-20 w-20'}"
+                      />
+                    {:else}
+                      {@render giftGlyph(`h-20 w-20 ${rarity.text}`)}
+                    {/if}
+                  </div>
+                  <div>
+                    <div
+                      class="header text-xs font-semibold uppercase tracking-widest {rarity.text}"
+                    >
+                      {rarity.label}
+                      {#if lastResult.guaranteed}· Guaranteed{/if}
+                    </div>
+                    <div class="mt-1 text-2xl font-bold normal-case text-white">
+                      {#if reward}
+                        {#if reward.ship}
+                          <span class="text-amber-200">{tiers[reward.ship.tier - 1]}</span>
+                        {:else if reward.amount > 1}
+                          {prettyAmount(reward.amount)}
+                        {/if}
+                        {lootName(reward.name)}
+                      {:else}
+                        Compensation
+                      {/if}
+                    </div>
+                    <div class="mt-1 text-sm normal-case text-gray-400">
+                      {lastResult.item
+                        ? lastResult.drop.name
+                        : `${lastResult.drop.name}: you already own every ship in it`}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            {#if lastResult.additionalRewards?.length}
-              <div class="flex flex-col gap-2 text-sm normal-case text-cyan-100">
-                <div class="header text-xs uppercase tracking-wide text-gray-400">
-                  Additional slots
-                </div>
-                {#each lastResult.additionalRewards as extra}
-                  {#if extra.item}
-                    <div>{prettyAmount(extra.item.amount)}× {extra.item.name}</div>
-                  {/if}
-                {/each}
+                {#if lastResult.additionalRewards?.length}
+                  <div class="flex flex-col gap-2 text-sm normal-case text-cyan-100">
+                    <div class="header text-xs uppercase tracking-wide text-gray-400">
+                      Additional slots
+                    </div>
+                    {#each lastResult.additionalRewards as extra}
+                      {#if extra.item}
+                        <div>{prettyAmount(extra.item.amount)}× {extra.item.name}</div>
+                      {/if}
+                    {/each}
+                  </div>
+                {/if}
+              {/key}
+            {:else}
+              <div
+                class="flex flex-1 flex-col items-center justify-center gap-3 border border-dashed border-white/15 p-6 text-center"
+              >
+                {@render giftGlyph('h-14 w-14 text-cyan-200/40')}
+                <p class="text-sm normal-case text-gray-400">
+                  Open a container to see what Santa brings. Ships already in your port are
+                  excluded.
+                </p>
               </div>
             {/if}
-          {/key}
-        {:else}
-          <div
-            class="flex flex-1 flex-col items-center justify-center gap-3 border border-dashed border-white/15 p-6 text-center"
-          >
-            {@render giftGlyph('h-14 w-14 text-cyan-200/40')}
-            <p class="text-sm normal-case text-gray-400">
-              Open a container to see what Santa brings. Ships already in your port are excluded.
-            </p>
           </div>
-        {/if}
+        </div>
       </div>
     </div>
   </Box>
@@ -691,8 +691,8 @@
             {/each}
           </div>
           <p class="mt-2 text-xs normal-case text-gray-400">
-            Select a drop to see every possible reward. Ships you receive are removed from later rolls,
-            just like in game.
+            Select a drop to see every possible reward. Ships you receive are removed from later
+            rolls, just like in game.
           </p>
         {:else if openPanel === 'loot'}
           {#if stats.loot.length}
@@ -757,6 +757,11 @@
 </Modal>
 
 <style>
+  .reveal-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 0.2) transparent;
+  }
+
   .stage::before {
     content: '';
     position: absolute;
