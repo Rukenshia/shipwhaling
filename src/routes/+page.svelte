@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Realm, login, user } from '$lib/store';
+  import { Realm, restoreLogin, user } from '$lib/store';
   import { onMount } from 'svelte';
   import { derived, writable } from 'svelte/store';
   import RewardOverview from '$lib/components/RewardOverview.svelte';
@@ -82,29 +82,10 @@
     steelModifier = parseFloat(localStorage.getItem('steelModifier') || '1');
     excludedPreviouslyOwnedShipIds.set(loadExcludedPreviouslyOwnedShipIds());
 
-    // try to init user from local storage
-    const storedUser = localStorage.getItem('user');
-
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-
-      if (parsedUser.expires_at * 1000 < Date.now()) {
-        localStorage.removeItem('user');
-        window.location.href = '/login';
-      }
-
-      login({
-        ...parsedUser
-      });
-    } else {
+    if (!restoreLogin()) {
       window.location.href = '/login';
+      return;
     }
-
-    const unsubscribe = user.subscribe(() => {});
-
-    return () => {
-      unsubscribe();
-    };
   });
 
   function logout() {
@@ -330,7 +311,7 @@
           modify={(value, resource) => applyModifier(value, resource, coalModifier, steelModifier)}
         />
       {:catch error}
-        <ErrorMessage>{error.message}</ErrorMessage>
+        <ErrorMessage {error}>{error.message}</ErrorMessage>
       {/await}
     </div>
   </div>
@@ -351,7 +332,7 @@
     {:then shipsInPort}
       <BattleCalculator {activeEvent} {shipsInPort} />
     {:catch error}
-      <ErrorMessage>{error.message}</ErrorMessage>
+      <ErrorMessage {error}>{error.message}</ErrorMessage>
     {/await}
   </div>
 
@@ -368,7 +349,7 @@
     {:then shipsInPort}
       <Christmas2026Shop {shipsInPort} />
     {:catch error}
-      <ErrorMessage>{error.message}</ErrorMessage>
+      <ErrorMessage {error}>{error.message}</ErrorMessage>
     {/await}
   </div>
 
@@ -393,7 +374,7 @@
         onPreviouslyOwnedShipInclusionChange={setPreviouslyOwnedShipIncluded}
       />
     {:catch error}
-      <ErrorMessage>{error.message}</ErrorMessage>
+      <ErrorMessage {error}>{error.message}</ErrorMessage>
     {/await}
   </div>
 

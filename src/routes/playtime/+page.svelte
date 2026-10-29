@@ -2,13 +2,13 @@
   import Box from '$lib/components/Box.svelte';
   import Title from '$lib/components/Title.svelte';
   import { formatNumber } from '$lib/duration';
-  import { login, user } from '$lib/store';
+  import { restoreLogin } from '$lib/store';
+  import ErrorMessage from '$lib/components/ErrorMessage.svelte';
   import { onMount } from 'svelte';
-  import { get } from 'svelte/store';
 
   let battleLifeTime = $state<number | null>(null);
   let username = $state('');
-  let error = $state(false);
+  let error = $state<Error | null>(null);
 
   const duration = $derived.by(() => {
     const seconds = Math.max(0, Math.floor(battleLifeTime ?? 0));
@@ -21,30 +21,20 @@
   });
 
   async function loadPlaytime() {
-    error = false;
-
-    const storedUser = localStorage.getItem('user');
-
-    if (!storedUser) {
-      window.location.href = '/login';
-      return;
-    }
+    error = null;
+    battleLifeTime = null;
 
     try {
-      const parsedUser = JSON.parse(storedUser);
-
-      if (parsedUser.expires_at * 1000 < Date.now()) {
-        localStorage.removeItem('user');
+      const restored = restoreLogin();
+      if (!restored) {
         window.location.href = '/login';
         return;
       }
-
-      login(parsedUser);
-      username = parsedUser.username;
-      battleLifeTime = await get(user).getBattleLifeTime();
+      username = restored.username;
+      battleLifeTime = await restored.getBattleLifeTime();
     } catch (loadError) {
-      console.error('Could not load battle lifetime', loadError);
-      error = true;
+      error =
+        loadError instanceof Error ? loadError : new Error('Your playtime could not be loaded.');
     }
   }
 
@@ -121,19 +111,7 @@
           </p>
         </div>
       {:else if error}
-        <div
-          role="alert"
-          class="border-t border-rose-300/25 bg-rose-950/50 px-5 py-6 text-center text-rose-50 sm:px-10"
-        >
-          <p class="font-semibold">Your playtime could not be loaded.</p>
-          <p class="mt-1 text-sm text-rose-100/80">Please try again in a moment.</p>
-          <button
-            class="mt-4 border-2 border-white/30 bg-white/10 px-5 py-2 font-semibold uppercase tracking-wider text-white transition hover:bg-white/20"
-            onclick={loadPlaytime}
-          >
-            Try again
-          </button>
-        </div>
+        <ErrorMessage {error}>{error.message}</ErrorMessage>
       {:else}
         <div
           class="border-t border-white/15 bg-cyan-950/35 px-5 py-8 text-center text-cyan-50/80 sm:px-10"

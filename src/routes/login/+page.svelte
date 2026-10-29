@@ -5,7 +5,7 @@
   import { Realm } from '$lib/store';
 
   async function redirectToLogin(realm: 'eu' | 'com' | 'asia') {
-    const expiresAt = Date.now() + 3600 * 24 * 1;
+    const expiresAt = Math.floor(Date.now() / 1000) + 3600 * 24;
     window.location.href = `https://api.worldoftanks.${realm}/wot/auth/login/?application_id=${import.meta.env.VITE_WARGAMING_APP_ID}&expires_at=${expiresAt}&redirect_uri=${import.meta.env.VITE_BASE_URL}/login/callback?realm=${realm}`;
   }
 
