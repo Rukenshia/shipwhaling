@@ -1,32 +1,52 @@
 import { verifyContainer, type Container } from '$lib/container';
-import icon from '$lib/assets/golden-gift-container.png';
+import icon from '$lib/assets/christmas2026/battle-forged-premium-container.png';
 
 export const BattleForgedPremiumContainer2026: Container = {
   icon,
   name: 'Battle Forged Premium Container',
 
-  // NOTE: This container has 3 slots in the game
-  // Slot 1: 3x Legendary expendable economic bonuses (always drops)
-  // Slot 2 (shown here): Research Points, Steel, or New Jersey BF
-  // Slot 3: 3x Legendary expendable economic bonuses (always drops)
-  // New Jersey BF is guaranteed on the 3rd opening, which is not simulated while she is an item
+  guaranteedDropAfter: 3,
+  guaranteedDropType: 'ship',
+
+  // Slot 2 is the main drop; slots 1 and 3 each independently award a bonus type.
+  additionalSlots: [1, 3].map((slot) => ({
+    name: `Slot ${slot}`,
+    drops: [
+      {
+        name: `Legendary Expendable Economic Bonus (Slot ${slot})`,
+        probability: 1,
+        type: 'item',
+        items: [
+          { name: 'Legendary Credit Boosters', amount: 3 },
+          { name: 'Legendary Ship XP Boosters', amount: 3 },
+          { name: 'Legendary Commander XP Boosters', amount: 3 },
+          { name: 'Legendary Free XP Boosters', amount: 3 }
+        ]
+      }
+    ]
+  })),
   drops: [
     {
       probability: 0.25,
       name: 'Research Points (Slot 2)',
+      rarity: 'rare',
       type: 'item',
       items: [{ name: 'Research Points', amount: 10000 }]
     },
     {
       probability: 0.25,
       name: 'Steel (Slot 2)',
+      rarity: 'rare',
       type: 'item',
       items: [{ name: 'Steel', amount: 5000 }]
     },
     {
       probability: 0.5,
       name: 'New Jersey BF',
+      rarity: 'legendary',
       type: 'item', // HACK: New Jersey BF is not in the ship list yet
+      unique: true,
+      compensation: { name: 'Steel', amount: 2500 },
       condition: 'If you already have New Jersey BF, you will instead receive 2,500 Steel',
       items: [{ name: 'New Jersey BF', amount: 1 }]
     }

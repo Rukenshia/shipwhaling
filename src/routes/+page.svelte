@@ -2,7 +2,7 @@
   import { Realm, login, user } from '$lib/store';
   import { onMount } from 'svelte';
   import { derived, writable } from 'svelte/store';
-  import RewardStat from '$lib/components/RewardStat.svelte';
+  import RewardOverview from '$lib/components/RewardOverview.svelte';
   import Faq from '$lib/components/FAQ.svelte';
 
   import warships from '$lib/assets/warships.json';
@@ -21,8 +21,6 @@
   import Christmas2026Shop from '$lib/components/events/Christmas2026Shop.svelte';
   import Box from '$lib/components/Box.svelte';
   import { createRewardsStore, createEventStatsStore } from '$lib/rewardCalculator';
-  import Tooltip from '$lib/components/Tooltip.svelte';
-  import { prettyAmount } from '$lib/util';
 
   const activeEvent = new Christmas2026();
   const excludedPreviouslyOwnedShipIdsStorageKey = 'shipwhaling:excluded-previously-owned-ship-ids';
@@ -216,13 +214,12 @@
     <p class="text-sm leading-5 sm:text-base">
       Festive Rewards start with the release of
       <a
-        href="https://blog.worldofwarships.com/"
+        href="https://blog.worldofwarships.com/blog/closed-test-1511-new-year-celebrations-santas-gifts-and-the-ice-station-port"
         target="_blank"
         rel="noreferrer"
         class="font-semibold text-amber-200 underline decoration-amber-300/60 underline-offset-2 transition-colors hover:text-white"
         >Update 15.11</a
-      >. Don't forget your New Year Gift: log in during the first four weeks to pick a free Tier IX
-      ship (Alsace, Lion, Encounter, Takahashi or Udaloi).
+      >
     </p>
   </aside>
 
@@ -240,7 +237,7 @@
         </Title>
         <div class="flex flex-wrap items-center gap-2">
           <a
-            href="https://blog.worldofwarships.com/"
+            href="https://blog.worldofwarships.com/blog/closed-test-1511-new-year-celebrations-santas-gifts-and-the-ice-station-port"
             target="_blank"
             rel="noreferrer"
             class="header inline-flex border-2 border-white/40 bg-white/20 px-4 py-2 text-sm font-semibold uppercase tracking-wider text-white backdrop-blur transition-colors duration-200 hover:bg-white/30"
@@ -251,7 +248,7 @@
             href="https://buymeacoffee.com/rukenshia"
             target="_blank"
             rel="noreferrer"
-            class="header inline-flex items-center gap-2 border border-amber-200/30 bg-cyan-950/30 px-3 py-2 text-sm font-semibold text-amber-50/90 backdrop-blur transition-colors duration-200 hover:border-amber-200/60 hover:bg-amber-200/10 hover:text-white"
+            class="header inline-flex items-center gap-2 border border-amber-200/30 bg-amber-400/20 px-3 py-2 text-sm font-semibold text-amber-50 backdrop-blur transition-colors duration-200 hover:border-amber-200/60 hover:bg-amber-200/10 hover:text-white"
           >
             <img src={bmcLogo} alt="" class="h-4 w-4" />
             Buy me a coffee
@@ -323,86 +320,18 @@
     </div>
     <div class="space-y-8">
       <!-- Main rewards section -->
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-3">
-        {#await Promise.all([$eventStats, $previouslyOwnedEventStats])}
-          {#each activeEvent.possibleResources as resource}
-            <RewardStat title={resource.name} icon={resource.image} value={0} />
-          {/each}
-        {:then [currentRewards, previousRewards]}
-          {#each activeEvent.possibleResources as resource}
-            <div class="space-y-3">
-              <RewardStat
-                title={resource.name}
-                icon={resource.image}
-                value={applyModifier(
-                  currentRewards.rewards[resource.name].total,
-                  resource,
-                  coalModifier,
-                  steelModifier
-                )}
-              >
-                from {currentRewards.rewards[resource.name].ships} ship{currentRewards.rewards[
-                  resource.name
-                ].ships === 1
-                  ? ''
-                  : 's'} in port
-                {#if previousRewards.rewards[resource.name].total > 0}
-                  <br />
-                  <span class="block lg:hidden text-xs text-cyan-200/50">
-                    +
-                    {prettyAmount(
-                      applyModifier(
-                        previousRewards.rewards[resource.name].total,
-                        resource,
-                        coalModifier,
-                        steelModifier
-                      )
-                    )}
-                    from previously owned ships
-                  </span>
-                {/if}
-              </RewardStat>
-              {#if previousRewards.rewards[resource.name].total > 0}
-                <div class="hidden lg:block">
-                  <Tooltip>
-                    {#snippet tooltip()}
-                      You could earn these rewards if you re-buy ships that you had in your port
-                      before. A full breakdown can be found in the "Breakdown" section below.
-                    {/snippet}
-                    <RewardStat
-                      title={resource.name}
-                      icon={resource.image}
-                      value={applyModifier(
-                        previousRewards.rewards[resource.name].total,
-                        resource,
-                        coalModifier,
-                        steelModifier
-                      )}
-                      variant="compact"
-                    >
-                      from {previousRewards.rewards[resource.name].ships} previously owned ship{previousRewards
-                        .rewards[resource.name].ships === 1
-                        ? ''
-                        : 's'}
-                    </RewardStat>
-                  </Tooltip>
-                </div>
-              {/if}
-            </div>
-          {/each}
-          {#each Object.keys(currentRewards.conversions) as conversionStat}
-            <RewardStat
-              title={currentRewards.conversions[conversionStat].container.name}
-              icon={currentRewards.conversions[conversionStat].container.icon}
-              value={currentRewards.conversions[conversionStat].total}
-            >
-              by converting all {currentRewards.conversions[conversionStat].source.name}
-            </RewardStat>
-          {/each}
-        {:catch error}
-          <ErrorMessage>{error.message}</ErrorMessage>
-        {/await}
-      </div>
+      {#await Promise.all([$eventStats, $previouslyOwnedEventStats])}
+        <RewardOverview resources={activeEvent.possibleResources} />
+      {:then [currentRewards, previousRewards]}
+        <RewardOverview
+          resources={activeEvent.possibleResources}
+          current={currentRewards}
+          previouslyOwned={previousRewards}
+          modify={(value, resource) => applyModifier(value, resource, coalModifier, steelModifier)}
+        />
+      {:catch error}
+        <ErrorMessage>{error.message}</ErrorMessage>
+      {/await}
     </div>
   </div>
 

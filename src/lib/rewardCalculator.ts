@@ -1,6 +1,5 @@
 import type { Readable } from 'svelte/store';
 import { derived } from 'svelte/store';
-import type { Container } from './container';
 import type { Ship } from './ship';
 import type { Reward } from './reward';
 import type { Resource } from './resource';
@@ -14,7 +13,7 @@ export interface EventStats {
   };
   conversions: {
     [key: string]: {
-      container: Container;
+      target: { name: string; icon?: string };
       source: Resource;
       total: number;
     };
@@ -94,7 +93,7 @@ export function createEventStatsStore(
       }
     );
 
-    // calculate container conversions
+    // Each conversion is an alternative use of the full resource balance.
     const conversions: EventStats['conversions'] = {};
 
     for (const resourceName of Object.keys(res.rewards)) {
@@ -106,15 +105,19 @@ export function createEventStatsStore(
 
       for (const conversion of resource.convertsTo || []) {
         const maxAmount = Math.floor(total / conversion.cost);
-        const containerName = conversion.container.name;
+        const target = conversion.container ?? {
+          name: conversion.resource.name,
+          icon: conversion.resource.image
+        };
+        const targetName = target.name;
 
-        if (conversions[containerName]) {
-          conversions[containerName].total += maxAmount * conversion.returns;
-          conversions[containerName].container = conversion.container;
+        if (conversions[targetName]) {
+          conversions[targetName].total += maxAmount * conversion.returns;
+          conversions[targetName].target = target;
         } else {
-          conversions[containerName] = {
+          conversions[targetName] = {
             total: maxAmount * conversion.returns,
-            container: conversion.container,
+            target,
             source: resource
           };
         }

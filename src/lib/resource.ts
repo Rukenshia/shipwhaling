@@ -3,6 +3,8 @@ import coal from './assets/coal.svg';
 import steel from './assets/steel.svg';
 import festiveToken from './assets/festive-token.png';
 import baseXP from './assets/base-xp.svg';
+import credits from './assets/credits.png';
+import type { Container } from './container';
 
 export interface Resource {
   name: string;
@@ -11,11 +13,17 @@ export interface Resource {
   convertsTo?: Conversion[];
 }
 
-export interface Conversion {
-  container?: any;
+export type Conversion = (
+  { container: Container; resource?: never } | { resource: Resource; container?: never }
+) & {
   cost: number;
   returns: number;
-}
+};
+
+export const Credits: Resource = {
+  name: 'Credits',
+  image: credits
+};
 
 export const Coal: Resource = {
   name: 'Coal',

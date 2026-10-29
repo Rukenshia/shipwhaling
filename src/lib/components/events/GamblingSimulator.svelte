@@ -1,407 +1,811 @@
 <script lang="ts">
-  import anime from 'animejs';
-  import { type Container, type Item, type ItemDrop } from '$lib/container';
-  import DiceIcon from '../DiceIcon.svelte';
-  import BoxSelect from '../BoxSelect.svelte';
-  import Box from '../Box.svelte';
-  import ContainerDrop from '../ContainerDrop.svelte';
+  import { tick } from 'svelte';
+  import { scale, slide } from 'svelte/transition';
+  import { backOut } from 'svelte/easing';
+  import type { Container, Item, ItemDrop, Rarity } from '$lib/container';
+  import {
+    addLoot,
+    createState,
+    dropRarity,
+    effectiveDrops,
+    isOwned,
+    isShipDrop,
+    roll,
+    sortedLoot,
+    type Loot,
+    type LootEntry,
+    type RollResult,
+    type SimulatorState
+  } from '$lib/containerSimulator';
   import { prettyAmount } from '$lib/util';
   import type { Ship } from '$lib/ship';
+  import coalIcon from '$lib/assets/coal.svg';
+  import steelIcon from '$lib/assets/steel.svg';
+  import goldenGiftIcon from '$lib/assets/golden-gift-container.png';
+  import battleForgedIcon from '$lib/assets/christmas2026/battle-forged-premium-container.png';
+  import Box from '../Box.svelte';
+  import Modal from '../Modal.svelte';
 
   let { shipsInPort, containers }: { shipsInPort: Ship[]; containers: Container[] } = $props();
 
-  let selectedContainer: Container = $state(containers[0]);
+  const MAX_BULK = 100000;
+  const OPEN_DURATION = 900;
 
-  // Container with ships we don't have
-  let container = $derived({
-    ...selectedContainer,
-    drops: selectedContainer.drops.map((drop) => {
-      return {
-        ...drop,
-        items: [...drop.items]
-          .sort((a, b) => {
-            if (a.ship && b.ship) {
-              if (a.ship.tier === b.ship.tier) {
-                return a.name.localeCompare(b.name);
-              } else {
-                return a.ship.tier - b.ship.tier;
-              }
-            }
-
-            return 0;
-          })
-          .filter((item) => {
-            return !shipsInPort.some(
-              (ship) => ship.name.replace(/\s+/g, ' ') === item.name.replace(/\s+/g, ' ')
-            );
-          })
-      };
-    })
-  });
-
-  let fastRoll = $state(false);
-
-  const randomElement = (arr: NodeList | any[]) => {
-    return arr[Math.floor(Math.random() * arr.length)];
+  const rarityStyles: Record<
+    Rarity,
+    { label: string; text: string; outline: string; bg: string; bar: string; glow: string }
+  > = {
+    common: {
+      label: 'Common',
+      text: 'text-slate-200',
+      outline: 'outline-slate-300/30',
+      bg: 'bg-slate-500/10',
+      bar: 'bg-slate-400/70',
+      glow: 'shadow-[0_0_40px_-12px_rgba(148,163,184,0.5)]'
+    },
+    rare: {
+      label: 'Rare',
+      text: 'text-sky-300',
+      outline: 'outline-sky-300/50',
+      bg: 'bg-sky-500/10',
+      bar: 'bg-sky-400',
+      glow: 'shadow-[0_0_48px_-10px_rgba(56,189,248,0.6)]'
+    },
+    epic: {
+      label: 'Epic',
+      text: 'text-violet-300',
+      outline: 'outline-violet-300/60',
+      bg: 'bg-violet-500/15',
+      bar: 'bg-violet-400',
+      glow: 'shadow-[0_0_56px_-8px_rgba(167,139,250,0.7)]'
+    },
+    legendary: {
+      label: 'Legendary',
+      text: 'text-amber-300',
+      outline: 'outline-amber-300/70',
+      bg: 'bg-amber-500/15',
+      bar: 'bg-amber-400',
+      glow: 'shadow-[0_0_64px_-6px_rgba(251,191,36,0.8)]'
+    }
   };
 
-  function getRandomDrop(): ItemDrop {
-    const random = Math.random();
+  const tiers = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', '★'];
+  const percent = new Intl.NumberFormat('en-US', { maximumFractionDigits: 3 });
 
-    let cum = 0;
-    for (const drop of container.drops) {
-      cum += drop.probability;
-      if (random < cum) {
-        return drop;
+  // svelte-ignore state_referenced_locally
+  let selectedContainer: Container = $state(containers[0]);
+  let sim: SimulatorState = $state.raw(createSimState());
+  let version = $state(0);
+
+  let phase: 'idle' | 'opening' = $state('idle');
+  let skipAnimation = $state(false);
+  let bulkAmount = $state(100);
+  let lastResult: RollResult | undefined = $state(undefined);
+  let lastBatch:
+    | {
+        opened: number;
+        ships: Item[];
+        loot: LootEntry[];
+        shipsAvailable: boolean;
+        conditionalActive: boolean;
+        expectedShips: number;
       }
-    }
+    | undefined = $state(undefined);
+  let openPanel: 'rates' | 'loot' | 'ships' | undefined = $state(undefined);
+  let showAllShips = $state(false);
+  let revealKey = $state(0);
+  let detailsDrop: ItemDrop | undefined = $state(undefined);
+  let detailsOpen = $state(false);
+  let revealPanel: HTMLElement | undefined = $state(undefined);
 
-    // oopsie
-    console.error('No drop found', random, cum);
+  function createSimState() {
+    return createState(shipsInPort.map((ship) => ship.name));
   }
 
-  function getGuaranteedDrop(): ItemDrop {
-    const random = Math.random();
-
-    const shipDrops = container.drops.filter((s) => s.type === container.guaranteedDropType!);
-    const scale = shipDrops.reduce((acc, { probability }, index, array) => {
-      if (index === array.length) return acc / array.length;
-      return acc + probability;
-    }, 0);
-
-    let cum = 0;
-    for (const drop of shipDrops) {
-      cum += drop.probability / scale;
-      if (random < cum) {
-        return drop;
-      }
-    }
-
-    // oopsie
-    console.error('No drop found', random, cum);
+  function refresh() {
+    version++;
   }
 
-  let lastDrop: ItemDrop | undefined = $state(undefined);
-  let lastDroppedItem = $derived(lastDrop ? randomElement(lastDrop?.items) : undefined);
-  let simulationResults: { drop: ItemDrop; item: Item; count: number }[] | undefined =
-    $state(undefined);
-  let simulationRolls = $state(5);
-  let gambling = $state(false);
-
-  $effect(() => {
-    if (container) {
-      simulationResults = undefined;
-    }
+  // Everything below reads `version` so it recalculates after sim is mutated
+  let drops = $derived(version >= 0 ? effectiveDrops(selectedContainer, sim.owned) : []);
+  let rateDrops = $derived([
+    ...drops,
+    ...(selectedContainer.additionalSlots ?? []).flatMap((slot) =>
+      slot.drops.map((drop) => ({ drop, probability: drop.probability, items: drop.items }))
+    )
+  ]);
+  let maxProbability = $derived(Math.max(...rateDrops.map(({ probability }) => probability)));
+  let stats = $derived.by(() => {
+    void version;
+    return {
+      opened: sim.opened,
+      pity: sim.pity,
+      counts: { ...sim.counts },
+      ships: [...sim.ships].reverse(),
+      loot: sortedLoot(sim.loot)
+    };
   });
+  let guaranteeLeft = $derived(
+    drops.some(
+      ({ drop, items, probability }) =>
+        selectedContainer.guaranteedDropType === 'ship' &&
+        isShipDrop(drop) &&
+        items.length > 0 &&
+        probability > 0
+    )
+  );
+  let untilGuaranteed = $derived(
+    selectedContainer.guaranteedDropAfter && guaranteeLeft
+      ? Math.max(1, selectedContainer.guaranteedDropAfter - stats.pity)
+      : undefined
+  );
 
-  function animateFinalDrop(el: HTMLElement, props: any = {}) {
-    anime({
-      targets: el,
-      backgroundColor: [{ value: 'rgba(30,41,59, 0.3)' }, { value: 'rgb(52,211,153, 0.5)' }],
-      outlineColor: [{ value: 'rgba(71,85,105, 0.6)' }, { value: 'rgb(52,211,153, 0.8)' }],
-      duration: 1500,
-      easing: 'linear',
-      loop: false,
-      complete: () => {
-        el.setAttribute('data-drop-active', 'true');
-      },
-      ...props
-    });
+  function selectContainer(container: Container) {
+    if (phase === 'opening' || container === selectedContainer) return;
+    selectedContainer = container;
+    reset();
   }
 
-  function simulate() {
-    if (simulationRolls > 100000) {
-      simulationRolls = 100000;
-    }
-
-    if (simulationRolls < 1) {
-      simulationRolls = 1;
-    }
-    gambling = true;
-
-    let pityCounter = 0;
-    let results: { [key: string]: { drop: ItemDrop; item: Item; count: number } } = Array.from(
-      { length: simulationRolls },
-      () => {
-        // Guarantee a ship drop every nth container where applicable
-        const isGuaranteedDrop = container.guaranteedDropAfter
-          ? (pityCounter + 1) % container.guaranteedDropAfter === 0
-          : false;
-        const drop = isGuaranteedDrop ? getGuaranteedDrop() : getRandomDrop();
-
-        if (drop.type === 'ship') {
-          pityCounter = 0;
-        } else {
-          pityCounter++;
-        }
-
-        if (drop.items.length === 0) {
-          return { drop: drop, item: { name: 'Compensation', amount: 1 } };
-        }
-
-        return { drop: drop, item: randomElement(drop.items) };
-      }
-    ).reduce(
-      (acc: { [key: string]: { drop: ItemDrop; item: Item; count: number } }, { drop, item }) => {
-        const key = `${drop.name}`; //-${item.name}`;
-        if (!acc[key]) {
-          acc[key] = { drop, item, count: 0 };
-        }
-        acc[key].count++;
-        return acc;
-      },
-      {}
-    );
-
-    // add drops that didn't drop
-    for (const drop of container.drops) {
-      const key = `${drop.name}`;
-      if (!results[key]) {
-        results[key] = { drop, item: { name: 'None', amount: 1 }, count: 0 };
-      }
-    }
-
-    // sort into array by original container drop order
-    let sortedResults = container.drops.map((drop) => {
-      const key = `${drop.name}`;
-      return results[key];
-    });
-
-    gambling = false;
-    simulationResults = sortedResults;
+  function reset() {
+    sim = createSimState();
+    lastResult = undefined;
+    lastBatch = undefined;
+    showAllShips = false;
+    refresh();
   }
 
-  function gamble() {
-    gambling = true;
-    simulationResults = undefined;
+  function openOne() {
+    if (phase === 'opening') return;
 
-    if (fastRoll) {
-      const finalDropEl = document.querySelector(`[data-drop-name="${lastDrop?.name}"]`);
-      if (finalDropEl) {
-        // reset last drop
-        finalDropEl.setAttribute('data-drop-active', 'false');
-        anime({
-          targets: finalDropEl,
-          backgroundColor: 'rgba(30,41,59, 0.3)',
-          outlineColor: 'rgba(71,85,105, 0.6)',
-          easing: 'linear',
-          loop: false,
-          duration: 100
-        });
-      }
+    const result = roll(selectedContainer, sim);
+    lastBatch = undefined;
 
-      const finalDrop = getRandomDrop();
-      lastDrop = finalDrop;
-      gambling = false;
-      animateFinalDrop(
-        document.querySelector(`[data-drop-name="${finalDrop.name}"]`) as HTMLElement,
-        { duration: 250 }
-      );
+    const reveal = () => {
+      lastResult = result;
+      revealKey++;
+      showReveal();
+      phase = 'idle';
+      refresh();
+    };
+
+    if (skipAnimation || prefersReducedMotion()) {
+      reveal();
       return;
     }
 
-    const lastDropEl = document.querySelector(`[data-drop-name="${lastDrop?.name}"]`);
-    if (lastDropEl) {
-      lastDropEl.setAttribute('data-drop-active', 'false');
+    phase = 'opening';
+    setTimeout(reveal, OPEN_DURATION);
+  }
+
+  function openMany() {
+    if (phase === 'opening') return;
+
+    const amount = Math.min(MAX_BULK, Math.max(1, Math.trunc(bulkAmount) || 1));
+    bulkAmount = amount;
+
+    const shipDrops = drops.filter(
+      ({ drop, items }) => (drop.type === 'ship' || drop.unique) && items.length > 0
+    );
+    const shipsBefore = sim.ships.length;
+    const loot: Loot = {};
+    let result: RollResult | undefined;
+    for (let i = 0; i < amount; i++) {
+      result = roll(selectedContainer, sim);
+      addLoot(loot, result);
     }
 
-    const targets = document.querySelectorAll('.drop');
-    let animatedEl = lastDropEl ? lastDropEl : randomElement(targets);
+    lastResult = result;
+    lastBatch = {
+      opened: amount,
+      ships: sim.ships.slice(shipsBefore),
+      loot: sortedLoot(loot),
+      shipsAvailable: shipDrops.length > 0,
+      conditionalActive: drops.some(
+        ({ drop, probability }) =>
+          drop.conditionalProbability !== undefined && probability !== drop.probability
+      ),
+      expectedShips: amount * shipDrops.reduce((sum, { probability }) => sum + probability, 0)
+    };
+    revealKey++;
+    refresh();
+    showReveal();
+  }
 
-    const intv = setInterval(() => {
-      anime({
-        targets: animatedEl,
-        backgroundColor: [
-          { value: 'rgba(30,41,59, 0.3)' },
-          { value: 'rgb(52,211,153, 0.5)' },
-          { value: 'rgba(30,41,59, 0.3)' }
-        ],
-        outlineColor: [
-          { value: 'rgba(71,85,105, 0.6)' },
-          { value: 'rgb(52,211,153, 0.8)' },
-          { value: 'rgba(71,85,105, 0.6)' }
-        ],
-        duration: 1000,
-        easing: 'linear',
-        loop: false
+  // On narrow screens the result panel sits below the buttons, so bring it into view
+  async function showReveal() {
+    await tick();
+    if (!revealPanel) return;
+    const { top, bottom } = revealPanel.getBoundingClientRect();
+    if (top < 0 || bottom > window.innerHeight) {
+      revealPanel.scrollIntoView({
+        behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+        block: 'nearest'
       });
+    }
+  }
 
-      animatedEl = randomElement(targets);
-    }, 100);
+  function prefersReducedMotion() {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
 
-    const finalDrop: ItemDrop = getRandomDrop();
-    const finalDropEl = document.querySelector(`[data-drop-name="${finalDrop.name}"]`);
+  function showDetails(drop: ItemDrop) {
+    detailsDrop = drop;
+    detailsOpen = true;
+  }
 
-    setTimeout(() => {
-      clearInterval(intv);
+  function itemIcon(item: Item | undefined): string | undefined {
+    if (!item) return undefined;
+    if (item.ship) return item.ship.image;
+    if (/golden gift container/i.test(item.name)) return goldenGiftIcon;
+    if (/battle forged premium container/i.test(item.name)) return battleForgedIcon;
+    if (/coal/i.test(item.name)) return coalIcon;
+    if (/steel/i.test(item.name)) return steelIcon;
+    return undefined;
+  }
 
-      animateFinalDrop(finalDropEl as HTMLElement);
-    }, 4000);
+  function togglePanel(panel: typeof openPanel) {
+    openPanel = openPanel === panel ? undefined : panel;
+  }
 
-    setTimeout(() => {
-      gambling = false;
-      lastDrop = finalDrop;
-    }, 5500);
+  // "1x Golden Gift Container" reads better as "Golden Gift Container" next to a total
+  function lootName(name: string): string {
+    return name.replace(/^1x\s+/i, '');
+  }
+
+  function sortedItems(drop: ItemDrop): Item[] {
+    return [...drop.items].sort(
+      (a, b) => (b.ship?.tier ?? 0) - (a.ship?.tier ?? 0) || a.name.localeCompare(b.name)
+    );
   }
 </script>
 
-<div class="flex flex-col gap-8">
-  <div class="w-full grid grid-cols-8 divide-white/20 gap-4">
-    <div class="col-span-full lg:col-span-2 flex flex-col gap-4">
-      <div class="grid grid-cols-4 lg:grid-cols-2 gap-4">
-        <BoxSelect
-          choices={containers.map((c) => ({ icon: c.icon, name: c.name, value: c }))}
-          selected={container}
-          disabled={gambling}
-          onSelected={(value: Container) => {
-            selectedContainer = value;
-            lastDrop = undefined;
-          }}
-        />
-      </div>
-      <button
-        class={`
-      items-center
-      justify-center
-      xl:justify-start
-      header gambling-button
-      px-8 py-4 transition-all
-      backdrop-blur
+{#snippet giftGlyph(cls: string)}
+  <svg aria-hidden="true" viewBox="0 0 64 64" class={cls}>
+    <path
+      d="M10 26h44v30H10zM6 18h52v8H6zM32 18v38M32 18c-4-10-16-12-16-4 0 4 8 4 16 4Zm0 0c4-10 16-12 16-4 0 4-8 4-16 4Z"
+      fill="none"
+      stroke="currentColor"
+      stroke-linejoin="round"
+      stroke-width="3"
+    />
+  </svg>
+{/snippet}
 
-      bg-emerald-300/20 text-white
-      outline outline-2 outline-emerald-200/60 -outline-offset-2
-      disabled:bg-emerald-800/40 disabled:text-emerald-300
-
-      hover:bg-emerald-600/60
-      uppercase text-2xl font-medium
-      flex flex-col gap-4 items-center`}
-        disabled={gambling}
-        onclick={gamble}
+{#snippet lootList(entries: LootEntry[])}
+  <ul class="grid grid-cols-1 gap-1 sm:grid-cols-2">
+    {#each entries as entry (entry.name)}
+      {@const rarity = rarityStyles[entry.rarity]}
+      <li
+        class="flex items-center gap-2 bg-slate-950/40 py-1.5 pl-1.5 pr-2 text-sm normal-case"
+        title={`${entry.times}× dropped`}
       >
-        <DiceIcon />
-        <div>roll</div>
-      </button>
-      <div class="flex gap-2">
-        <input
-          type="number"
-          class="header bg-white/30 text-white w-16 text-center px-1 py-1"
-          min="1"
-          max="100000"
-          step="1"
-          bind:value={simulationRolls}
+        <span class="h-6 w-1 shrink-0 {rarity.bar}" aria-hidden="true"></span>
+        <span class="min-w-0 flex-1 truncate text-white">
+          {#if entry.amount !== entry.times}
+            <span class="font-sans font-semibold {rarity.text}">{prettyAmount(entry.amount)}</span>
+          {/if}
+          {lootName(entry.name)}
+        </span>
+        <span class="shrink-0 font-sans text-xs text-gray-400">{prettyAmount(entry.times)}×</span>
+      </li>
+    {/each}
+  </ul>
+{/snippet}
+
+{#snippet shipCard(item: Item, owned = false)}
+  <div
+    class="flex flex-col overflow-hidden bg-slate-950/50 outline outline-1 -outline-offset-1 outline-white/10"
+    class:opacity-40={owned}
+  >
+    <div class="relative flex h-16 items-center justify-center bg-slate-900/60 px-2">
+      {#if item.ship?.image}
+        <img
+          src={item.ship.image}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          class="h-full w-full object-contain"
         />
-        <button
-          class={`
-      header gambling-button
-      px-2 py-1 transition-all
-      backdrop-blur
-
-      bg-slate-300/20 text-white
-      outline outline-2 outline-slate-200/60 -outline-offset-2
-      disabled:bg-slate-800/40 disabled:text-slate-300
-
-      hover:bg-slate-600/60
-      uppercase text-sm font-medium
-      `}
-          disabled={gambling}
-          onclick={simulate}
+      {:else}
+        {@render giftGlyph('h-8 w-8 text-slate-500')}
+      {/if}
+      {#if item.ship}
+        <span
+          class="header absolute left-1 top-1 bg-slate-950/80 px-1.5 text-xs font-semibold text-amber-200"
         >
-          simulate rolls
-        </button>
-      </div>
-      <div class="flex items-center gap-2">
-        <button
-          type="button"
-          onclick={() => {
-            fastRoll = !fastRoll;
-          }}
-          class={`
-          group relative inline-flex h-8 w-16 shrink-0 cursor-pointer items-center justify-center
-
-          ${fastRoll ? 'bg-emerald-300/20' : 'bg-gray-200/20'}
-        `}
-          role="switch"
-          aria-checked="false"
+          {tiers[item.ship.tier - 1]}
+        </span>
+      {/if}
+      {#if owned}
+        <span
+          class="header absolute right-1 top-1 bg-slate-950/80 px-1.5 text-[0.65rem] uppercase text-gray-300"
         >
-          <span class="sr-only">fast roll</span>
-          <span
-            aria-hidden="true"
-            class={`
-            pointer-events-none absolute left-1 inline-block size-6 transform border border-gray-200 bg-white shadow ring-0 transition-transform duration-200 ease-in-out
-            ${fastRoll ? 'translate-x-8' : 'translate-x-0'}
-          `}
-          ></span>
-        </button>
-        <span class="header uppercase">Fast roll</span>
-      </div>
+          In port
+        </span>
+      {/if}
     </div>
+    <div class="truncate px-2 py-1.5 text-xs text-white" title={item.name}>{item.name}</div>
+  </div>
+{/snippet}
 
-    <div
-      class="col-span-full lg:col-span-6 flex flex-col justify-between gap-4 lg:border-l pl-0 lg:pl-4"
-    >
-      <div class="w-full flex flex-col gap-8">
-        {#if container.guaranteedDropAfter}
-          <Box class="col-span-6" variant="subtle">
-            <span class="flex items-baseline gap-2">
-              <span class="text-gray-300"
-                >Guaranteed drop on the {container.guaranteedDropAfter}th roll:</span
+<div class="flex flex-col gap-6">
+  <!-- Container picker -->
+  <div
+    class="grid grid-cols-2 gap-2 sm:grid-cols-3 {containers.length >= 5
+      ? 'lg:grid-cols-5'
+      : 'lg:grid-cols-4'}"
+    role="tablist"
+    aria-label="Containers"
+  >
+    {#each containers as container (container.name)}
+      {@const active = container === selectedContainer}
+      <button
+        role="tab"
+        aria-selected={active}
+        disabled={phase === 'opening' && !active}
+        onclick={() => selectContainer(container)}
+        class="header flex items-center gap-3 px-3 py-2 text-left text-sm backdrop-blur transition-all outline outline-2 -outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50
+          {active
+          ? 'bg-cyan-300/20 text-white outline-cyan-200/60'
+          : 'bg-slate-300/10 text-gray-300 outline-slate-200/30 hover:bg-slate-600/50'}"
+      >
+        <img src={container.icon} alt="" class="h-10 w-10 shrink-0 object-contain" />
+        <span class="min-w-0 leading-tight">
+          <span class="block">{container.name}</span>
+        </span>
+      </button>
+    {/each}
+  </div>
+
+  <!-- Stage -->
+  <Box variant="dark" padding="p-0" class="overflow-hidden">
+    <div class="grid w-full lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+      <div class="stage relative flex flex-col items-center justify-center gap-6 px-6 py-8 lg:px-8">
+        <img
+          src={selectedContainer.icon}
+          alt={selectedContainer.name}
+          class="relative h-28 w-28 object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.6)] sm:h-36 sm:w-36"
+          class:shaking={phase === 'opening'}
+        />
+        <div class="text-center">
+          <h3 class="text-2xl font-bold text-white">{selectedContainer.name}</h3>
+          {#if untilGuaranteed !== undefined}
+            <div class="mt-1 text-sm normal-case text-cyan-200/80">
+              Guaranteed ship in <span class="font-sans font-semibold text-white"
+                >{untilGuaranteed}</span
               >
-              <span class="font-sans normal-case text-emerald-400/80 font-medium">
-                any {container.guaranteedDropType}
-              </span>
-            </span>
-          </Box>
-        {/if}
-        <div class="w-full grid grid-cols-2 lg:grid-cols-3 3xl:grid-cols-6 gap-4 transition-all">
-          <div class="col-span-full text-gray-400 text-sm italic lg:hidden text-center mb-2">
-            Tap on a drop to see full details
-          </div>
-          {#if simulationResults}
-            {#each simulationResults as { drop, item, count } (`simul-${drop.name}-${item.name}`)}
-              <ContainerDrop simulated={true} {drop} {count} />
-            {/each}
-          {:else}
-            {#each container.drops as drop (`${container.name}-${drop.name}`)}
-              <ContainerDrop {drop} />
-            {/each}
+              opening{untilGuaranteed === 1 ? '' : 's'}
+            </div>
+          {:else if selectedContainer.guaranteedDropAfter}
+            <div class="mt-1 text-sm normal-case text-cyan-200/80">No ships left to guarantee</div>
           {/if}
         </div>
+
+        <div class="flex w-full max-w-xs flex-col gap-3">
+          <button
+            class="header bg-emerald-300/20 px-6 py-3 text-xl font-medium uppercase tracking-wider text-white outline outline-2 -outline-offset-2 outline-emerald-200/60 backdrop-blur transition-all hover:bg-emerald-600/60 disabled:bg-emerald-800/40 disabled:text-emerald-300"
+            disabled={phase === 'opening'}
+            onclick={openOne}
+          >
+            {phase === 'opening' ? 'Opening…' : 'Open container'}
+          </button>
+          <div class="flex gap-2">
+            <label class="sr-only" for="bulk-amount">Containers to open at once</label>
+            <input
+              id="bulk-amount"
+              type="number"
+              min="1"
+              max={MAX_BULK}
+              bind:value={bulkAmount}
+              class="w-24 min-w-0 border border-slate-500/40 bg-slate-700/50 px-2 py-2 text-center font-sans text-sm text-white focus:border-cyan-400/60 focus:outline-none"
+            />
+            <button
+              class="header flex-1 bg-slate-300/20 px-3 py-2 text-sm uppercase tracking-wider text-white outline outline-2 -outline-offset-2 outline-slate-200/50 transition-all hover:bg-slate-600/60 disabled:opacity-50"
+              disabled={phase === 'opening'}
+              onclick={openMany}
+            >
+              Open {prettyAmount(Math.max(1, Math.trunc(bulkAmount) || 1))} instantly
+            </button>
+          </div>
+          <label class="flex cursor-pointer items-center gap-2 text-sm normal-case text-gray-300">
+            <input
+              type="checkbox"
+              bind:checked={skipAnimation}
+              class="h-4 w-4 accent-emerald-400"
+            />
+            Skip opening animation
+          </label>
+        </div>
       </div>
-      <div class="">
-        <Box class="flex-grow justify-center xl:col-span-2" variant="dark">
-          {#if lastDrop && !gambling}
-            <span class="flex items-center gap-2">
-              <span> You received: </span>
-              <span class="font-sans normal-case text-emerald-400 font-medium">
-                {#if !lastDroppedItem}
-                  <span class="text-red-500">Compensation</span>
-                {:else}
-                  {#if lastDroppedItem?.amount > 1}
-                    {prettyAmount(lastDroppedItem?.amount)}
-                  {/if}
-                  {lastDroppedItem?.name}
+
+      <!-- Reveal -->
+      <div
+        class="flex min-h-72 flex-col gap-4 border-t border-white/10 p-6 lg:border-l lg:border-t-0 lg:p-8"
+        aria-live="polite"
+        bind:this={revealPanel}
+      >
+        <div class="header text-sm font-semibold uppercase tracking-widest text-cyan-300">
+          {lastBatch ? `Opened ${prettyAmount(lastBatch.opened)} containers` : 'Your drop'}
+        </div>
+
+        {#if phase === 'opening'}
+          <div class="flex flex-1 items-center justify-center text-gray-400">
+            <span class="header animate-pulse uppercase tracking-widest">Unwrapping…</span>
+          </div>
+        {:else if lastBatch}
+          {#key revealKey}
+            <div in:scale={{ start: 0.9, duration: 250 }} class="flex flex-col gap-4">
+              <div class="grid grid-cols-2 gap-3">
+                <div class="bg-slate-950/40 p-3">
+                  <div class="header text-xs uppercase tracking-wide text-gray-400">Ships</div>
+                  <div class="font-sans text-2xl font-bold text-white">
+                    {prettyAmount(lastBatch.ships.length)}
+                  </div>
+                </div>
+                <div class="bg-slate-950/40 p-3">
+                  <div class="header text-xs uppercase tracking-wide text-gray-400">
+                    Containers per ship
+                  </div>
+                  <div class="font-sans text-2xl font-bold text-white">
+                    {lastBatch.ships.length
+                      ? prettyAmount(Math.round(lastBatch.opened / lastBatch.ships.length))
+                      : '—'}
+                  </div>
+                </div>
+              </div>
+              {#if lastBatch.ships.length}
+                <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {#each lastBatch.ships.slice(0, 6) as ship}
+                    {@render shipCard(ship)}
+                  {/each}
+                </div>
+                {#if lastBatch.ships.length > 6}
+                  <div class="text-sm normal-case text-gray-400">
+                    and {prettyAmount(lastBatch.ships.length - 6)} more under "Ships received"
+                  </div>
                 {/if}
-              </span>
-            </span>
-          {:else}
-            {gambling ? 'Rolling...' : 'Click "roll" first'}
-          {/if}
-        </Box>
+              {:else if !lastBatch.shipsAvailable}
+                <p class="text-sm normal-case text-gray-300">
+                  {lastBatch.conditionalActive
+                    ? 'You already own every regular ship in this container, so its drop chance went to the rarer rewards instead.'
+                    : 'You already own every ship this container can drop, so ship rolls give the compensation listed below instead.'}
+                </p>
+              {:else}
+                <p class="text-sm normal-case text-gray-300">
+                  No ships in {prettyAmount(lastBatch.opened)} opening{lastBatch.opened === 1
+                    ? ''
+                    : 's'}. On average you would get {lastBatch.expectedShips < 1
+                    ? 'less than one'
+                    : `about ${percent.format(Math.round(lastBatch.expectedShips * 10) / 10)}`}.
+                </p>
+              {/if}
+              {#if lastBatch.loot.length}
+                <div class="flex flex-col gap-2">
+                  <div class="header text-xs uppercase tracking-wide text-gray-400">
+                    Other rewards
+                  </div>
+                  {@render lootList(lastBatch.loot)}
+                </div>
+              {/if}
+            </div>
+          {/key}
+        {:else if lastResult}
+          {@const rarity = rarityStyles[dropRarity(lastResult.drop)]}
+          {@const reward = lastResult.item ?? lastResult.compensation}
+          {@const icon = itemIcon(reward)}
+          {#key revealKey}
+            <div
+              in:scale={{ start: 0.6, duration: 450, easing: backOut }}
+              class="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center outline outline-2 -outline-offset-2 {rarity.outline} {rarity.bg} {rarity.glow}"
+            >
+              <div class="flex h-28 w-full items-center justify-center">
+                {#if icon}
+                  <img
+                    src={icon}
+                    alt=""
+                    class="max-h-full max-w-full object-contain {lastResult.item?.ship
+                      ? ''
+                      : 'h-20 w-20'}"
+                  />
+                {:else}
+                  {@render giftGlyph(`h-20 w-20 ${rarity.text}`)}
+                {/if}
+              </div>
+              <div>
+                <div class="header text-xs font-semibold uppercase tracking-widest {rarity.text}">
+                  {rarity.label}
+                  {#if lastResult.guaranteed}· Guaranteed{/if}
+                </div>
+                <div class="mt-1 text-2xl font-bold normal-case text-white">
+                  {#if reward}
+                    {#if reward.ship}
+                      <span class="text-amber-200">{tiers[reward.ship.tier - 1]}</span>
+                    {:else if reward.amount > 1}
+                      {prettyAmount(reward.amount)}
+                    {/if}
+                    {lootName(reward.name)}
+                  {:else}
+                    Compensation
+                  {/if}
+                </div>
+                <div class="mt-1 text-sm normal-case text-gray-400">
+                  {lastResult.item
+                    ? lastResult.drop.name
+                    : `${lastResult.drop.name}: you already own every ship in it`}
+                </div>
+              </div>
+            </div>
+            {#if lastResult.additionalRewards?.length}
+              <div class="flex flex-col gap-2 text-sm normal-case text-cyan-100">
+                <div class="header text-xs uppercase tracking-wide text-gray-400">
+                  Additional slots
+                </div>
+                {#each lastResult.additionalRewards as extra}
+                  {#if extra.item}
+                    <div>{prettyAmount(extra.item.amount)}× {extra.item.name}</div>
+                  {/if}
+                {/each}
+              </div>
+            {/if}
+          {/key}
+        {:else}
+          <div
+            class="flex flex-1 flex-col items-center justify-center gap-3 border border-dashed border-white/15 p-6 text-center"
+          >
+            {@render giftGlyph('h-14 w-14 text-cyan-200/40')}
+            <p class="text-sm normal-case text-gray-400">
+              Open a container to see what Santa brings. Ships already in your port are excluded.
+            </p>
+          </div>
+        {/if}
       </div>
     </div>
+  </Box>
+
+  <!-- Session stats -->
+  <Box uppercase variant="dark" class="border border-slate-500/30 backdrop-blur-md">
+    <div class="flex w-full flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div class="grid grid-cols-2 gap-4 text-left sm:grid-cols-4">
+        <div>
+          <div class="header text-xs tracking-wide text-gray-400">Opened</div>
+          <div class="font-sans text-xl font-bold text-white">{prettyAmount(stats.opened)}</div>
+        </div>
+        <div>
+          <div class="header text-xs tracking-wide text-gray-400">Ships received</div>
+          <div class="font-sans text-xl font-bold text-emerald-400">
+            {prettyAmount(stats.ships.length)}
+          </div>
+        </div>
+        <div>
+          <div class="header text-xs tracking-wide text-gray-400">Ship rate</div>
+          <div class="font-sans text-xl font-bold text-white">
+            {stats.opened ? `${percent.format((stats.ships.length / stats.opened) * 100)}%` : '—'}
+          </div>
+        </div>
+        <div>
+          <div class="header text-xs tracking-wide text-gray-400">Pity counter</div>
+          <div class="font-sans text-xl font-bold text-white">
+            {#if untilGuaranteed !== undefined}
+              {stats.pity}<span class="text-sm text-gray-400"
+                >/{selectedContainer.guaranteedDropAfter}</span
+              >
+            {:else}
+              —
+            {/if}
+          </div>
+        </div>
+      </div>
+      <button
+        class="header border border-white/20 bg-white/10 px-4 py-2 text-xs tracking-wider text-gray-200 transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
+        disabled={stats.opened === 0 || phase === 'opening'}
+        onclick={reset}
+      >
+        Reset session
+      </button>
+    </div>
+  </Box>
+
+  <!-- Details, collapsed by default to keep the simulator compact -->
+  <div class="flex flex-col gap-3">
+    <div class="grid grid-cols-3 gap-2">
+      {#each [{ id: 'rates', label: 'Drop rates', count: undefined }, { id: 'loot', label: 'Rewards', count: stats.loot.length || undefined }, { id: 'ships', label: 'Ships received', count: stats.ships.length || undefined }] as const as tab (tab.id)}
+        {@const active = openPanel === tab.id}
+        <button
+          aria-expanded={active}
+          aria-controls="simulator-details"
+          onclick={() => togglePanel(tab.id)}
+          class="header flex items-center justify-center gap-2 px-2 py-2 text-sm uppercase tracking-wider backdrop-blur transition-all outline outline-2 -outline-offset-2
+            {active
+            ? 'bg-cyan-300/20 text-white outline-cyan-200/60'
+            : 'bg-slate-300/10 text-gray-300 outline-slate-200/30 hover:bg-slate-600/50'}"
+        >
+          <span class="truncate">{tab.label}</span>
+          {#if tab.count}
+            <span class="bg-white/15 px-1.5 font-sans text-xs text-white"
+              >{prettyAmount(tab.count)}</span
+            >
+          {/if}
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 20 20"
+            class="hidden h-4 w-4 shrink-0 transition-transform sm:block"
+            class:rotate-180={active}
+            fill="currentColor"
+          >
+            <path
+              d="M5.2 7.2a.75.75 0 0 1 1.06 0L10 10.94l3.74-3.74a.75.75 0 1 1 1.06 1.06l-4.27 4.27a.75.75 0 0 1-1.06 0L5.2 8.26a.75.75 0 0 1 0-1.06Z"
+            />
+          </svg>
+        </button>
+      {/each}
+    </div>
+
+    {#if openPanel}
+      <div id="simulator-details" transition:slide={{ duration: 200 }}>
+        {#if openPanel === 'rates'}
+          {#if selectedContainer.additionalSlots?.length}
+            <p class="mb-2 text-sm normal-case text-cyan-100/80">
+              Every container awards one reward from each of its three independent slots. Bonus
+              types within an economic-bonus drop are equally likely.
+            </p>
+          {/if}
+          <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
+            {#each rateDrops as { drop, probability, items } (drop.name)}
+              {@const rarity = rarityStyles[dropRarity(drop)]}
+              {@const isShipDrop = drop.type === 'ship' || drop.unique}
+              {@const exhausted = isShipDrop && items.length === 0}
+              <button
+                onclick={() => showDetails(drop)}
+                class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 bg-slate-950/30 py-2 pl-2 pr-3 text-left outline outline-1 -outline-offset-1 outline-white/10 backdrop-blur transition-colors hover:bg-slate-800/60"
+              >
+                <span class="h-8 w-1 {rarity.bar}" aria-hidden="true"></span>
+                <span class="min-w-0">
+                  <span class="flex items-baseline gap-2">
+                    <span class="truncate text-sm text-white">{drop.name}</span>
+                    {#if exhausted}
+                      <span class="shrink-0 text-xs text-gray-400">all owned</span>
+                    {:else if isShipDrop}
+                      <span class="shrink-0 text-xs text-gray-400">{items.length} ships</span>
+                    {/if}
+                  </span>
+                  <span class="mt-1.5 block h-1 bg-white/10" aria-hidden="true">
+                    <span
+                      class="block h-full {rarity.bar} transition-all"
+                      style="width: {probability > 0
+                        ? Math.max(2, Math.sqrt(probability / maxProbability) * 100)
+                        : 0}%"
+                    ></span>
+                  </span>
+                </span>
+                <span class="text-right font-sans">
+                  <span class="block text-sm font-medium text-white"
+                    >{percent.format(probability * 100)}%</span
+                  >
+                  <span
+                    class="block text-xs {stats.counts[drop.name] ? rarity.text : 'text-gray-500'}"
+                  >
+                    {prettyAmount(stats.counts[drop.name] ?? 0)}× received
+                  </span>
+                </span>
+              </button>
+            {/each}
+          </div>
+          <p class="mt-2 text-xs normal-case text-gray-400">
+            Select a drop to see every possible reward. Ships you receive are removed from later rolls,
+            just like in game.
+          </p>
+        {:else if openPanel === 'loot'}
+          {#if stats.loot.length}
+            {@render lootList(stats.loot)}
+          {:else}
+            <div
+              class="border border-dashed border-white/15 p-4 text-center text-sm normal-case text-gray-400"
+            >
+              Open some containers to see your rewards add up.
+            </div>
+          {/if}
+        {:else if stats.ships.length}
+          <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">
+            {#each showAllShips ? stats.ships : stats.ships.slice(0, 12) as ship}
+              {@render shipCard(ship)}
+            {/each}
+          </div>
+          {#if stats.ships.length > 12}
+            <button
+              class="header mt-2 w-full border border-white/20 bg-white/10 px-4 py-2 text-xs uppercase tracking-wider text-gray-200 transition-colors hover:bg-white/20"
+              onclick={() => (showAllShips = !showAllShips)}
+            >
+              {showAllShips ? 'Show fewer' : `Show all ${prettyAmount(stats.ships.length)} ships`}
+            </button>
+          {/if}
+        {:else}
+          <div
+            class="border border-dashed border-white/15 p-4 text-center text-sm normal-case text-gray-400"
+          >
+            No ships received yet this session.
+          </div>
+        {/if}
+      </div>
+    {/if}
   </div>
 </div>
 
+<Modal bind:open={detailsOpen}>
+  {#if detailsDrop}
+    <h2 class="header mb-2 text-2xl font-bold">{detailsDrop.name}</h2>
+    {#if detailsDrop.condition}
+      <p class="mb-4 text-cyan-300">{detailsDrop.condition}</p>
+    {/if}
+    {#if detailsDrop.items.some((item) => item.ship)}
+      <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+        {#each sortedItems(detailsDrop) as item}
+          {@render shipCard(item, isOwned(item, sim.owned))}
+        {/each}
+      </div>
+    {:else}
+      <ul class="list-inside list-disc space-y-1">
+        {#each detailsDrop.items as item}
+          <li>
+            {#if item.amount > 1}<span class="text-emerald-400">{prettyAmount(item.amount)}×</span
+              >{/if}
+            {item.name}
+          </li>
+        {/each}
+      </ul>
+    {/if}
+  {/if}
+</Modal>
+
 <style>
-  /* Chrome, Safari, Edge, Opera */
-  input::-webkit-outer-spin-button,
-  input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+  .stage::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 35%, rgba(103, 232, 249, 0.18), transparent 60%);
+    pointer-events: none;
   }
 
-  /* Firefox */
+  .shaking {
+    animation: shake 0.9s ease-in-out;
+  }
+
+  @keyframes shake {
+    0%,
+    100% {
+      transform: rotate(0) scale(1);
+    }
+    15% {
+      transform: rotate(-8deg) scale(1.04);
+    }
+    30% {
+      transform: rotate(8deg) scale(1.08);
+    }
+    45% {
+      transform: rotate(-10deg) scale(1.12);
+    }
+    60% {
+      transform: rotate(10deg) scale(1.16);
+    }
+    80% {
+      transform: rotate(0) scale(1.3);
+      filter: brightness(1.8);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shaking {
+      animation: none;
+    }
+  }
+
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    margin: 0;
+    appearance: none;
+  }
+
   input[type='number'] {
     -moz-appearance: textfield;
+    appearance: textfield;
   }
 </style>

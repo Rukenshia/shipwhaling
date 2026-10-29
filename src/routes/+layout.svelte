@@ -1,7 +1,9 @@
 <script lang="ts">
   import '../app.css';
+  import { base } from '$app/paths';
 
   import whale from '$lib/assets/christmas.png';
+  import snowflake from '$lib/assets/christmas2026/snowflake.png';
 
   interface Props {
     children?: import('svelte').Snippet;
@@ -11,33 +13,6 @@
 </script>
 
 <div class="w-full min-h-screen relative flex flex-col">
-  <a
-    href="https://convoy.in.fkn.space"
-    target="_blank"
-    rel="noopener noreferrer"
-    class="group relative z-20 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5 border-b border-amber-200/25 bg-cyan-950/85 px-4 py-2.5 text-center backdrop-blur-sm transition hover:border-amber-200/50 hover:bg-cyan-900/85 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-amber-300"
-  >
-    <span class="header text-xs font-medium uppercase tracking-wider text-cyan-100/85 sm:text-sm">
-      <svg
-        viewBox="0 0 22 12"
-        aria-hidden="true"
-        class="pennant mr-1.5 inline-block h-3 w-auto -translate-y-px drop-shadow"
-      >
-        <path d="M0 0 L22 6 L0 12 Z" fill="#fcd34d" />
-        <path d="M0 0 L11 3 L11 9 L0 12 Z" fill="#f59e0b" />
-      </svg>
-      Looking to plan your
-      <span class="text-amber-300">Holiday&nbsp;Convoy</span> rewards?
-      <span
-        class="font-bold text-white underline decoration-amber-300/50 decoration-2 underline-offset-4 transition group-hover:decoration-amber-300"
-      >
-        Check out the Holiday Convoy Planner
-      </span>
-      <span aria-hidden="true" class="inline-block transition-transform group-hover:translate-x-1">
-        →
-      </span>
-    </span>
-  </a>
 
   <div class="fixed inset-0 z-0">
     <div id="wallpaper" class="absolute inset-0 bg-cover bg-bottom"></div>
@@ -68,7 +43,10 @@
         >
           WARSHIP WHALING
         </h1>
-        <h2 class="text-center text-base sm:text-xl lg:text-2xl text-cyan-50/80 drop-shadow-2xl">
+        <h2
+          class="flex items-center justify-center gap-2 text-center text-base sm:text-xl lg:text-2xl text-cyan-50/80 drop-shadow-2xl"
+        >
+          <img src={snowflake} alt="" class="h-6 w-6 shrink-0 object-contain sm:h-8 sm:w-8" />
           Plan your Christmas Event Rewards
         </h2>
       </div>
@@ -81,9 +59,8 @@
   <footer class="bg-cyan-950/80 text-cyan-500 text-center py-4 pt-16 z-20">
     <p>
       Made by Rukenshia (Discord: Rukenshia). This website is not affiliated with Wargaming. <a
-        href="https://buymeacoffee.com/rukenshia"
-        target="_blank"
-        class="underline">Buy me a coffee</a
+        href={`${base}/impressum`}
+        class="underline">Impressum</a
       >.
     </p>
   </footer>

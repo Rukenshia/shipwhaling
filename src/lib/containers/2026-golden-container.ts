@@ -23,18 +23,21 @@ export const GoldenContainer2026: Container = {
     {
       probability: 0.2,
       name: 'Research Points',
+      rarity: 'rare',
       type: 'item',
       items: [{ name: 'Research Points', amount: 3750 }]
     },
     {
       probability: 0.1,
       name: 'Steel',
+      rarity: 'rare',
       type: 'item',
       items: [{ name: 'Steel', amount: 3000 }]
     },
     {
       probability: 0.09999,
       name: 'Ship (regular)',
+      rarity: 'epic',
       type: 'ship',
       conditionalProbability: 0,
       condition:
@@ -48,14 +51,17 @@ export const GoldenContainer2026: Container = {
     {
       probability: 0.00001,
       name: 'Golden Ship or Tywysog Cymru',
+      rarity: 'legendary',
       type: 'item', // HACK: because they don't exist yet
+      unique: true,
+      compensation: { name: 'Battle Forged Premium Container', amount: 1 },
       conditionalProbability: 0.1,
       condition:
         'If you have all ships from the normal Ship list, you will instead receive a Golden Ship or Tywysog Cymru. If you own all of them, you receive a Battle Forged Premium Container instead.',
       items: [
-        { name: 'Rodina Golden', amount: 1 },
-        { name: 'Tōgasa Golden', amount: 1 },
-        { name: 'Somers Golden', amount: 1 },
+        { name: 'Rodina G', amount: 1 },
+        { name: 'Tōgasa G', amount: 1 },
+        { name: 'Somers G', amount: 1 },
         { name: 'Tywysog Cymru', amount: 1 }
       ]
     }

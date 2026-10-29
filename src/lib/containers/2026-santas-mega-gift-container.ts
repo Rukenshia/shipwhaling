@@ -1,5 +1,5 @@
 import { verifyContainer, type Container } from '$lib/container';
-import icon from '$lib/assets/santas-mega-gift-container.png';
+import icon from '$lib/assets/christmas2026/santas-mega-gift-container.png';
 import { GoodShips2026, GreatShips2026, OkayShips2026 } from './2026-santas-ship-lists';
 
 export const SantasMegaGiftContainer2026: Container = {
@@ -13,6 +13,7 @@ export const SantasMegaGiftContainer2026: Container = {
     {
       probability: 0.05,
       name: 'Doubloons',
+      rarity: 'rare',
       type: 'item',
       items: [{ name: 'Doubloons', amount: 2500 }]
     },
@@ -25,12 +26,14 @@ export const SantasMegaGiftContainer2026: Container = {
     {
       probability: 0.1,
       name: 'Golden Gift Container',
+      rarity: 'epic',
       type: 'item',
       items: [{ name: '1x Golden Gift Container', amount: 1 }]
     },
     {
       probability: 0.01,
       name: 'WoWs Premium account',
+      rarity: 'rare',
       type: 'item',
       items: [{ name: 'Days of WoWs Premium Account', amount: 180 }]
     },
@@ -59,6 +62,7 @@ export const SantasMegaGiftContainer2026: Container = {
     },
     {
       name: 'Epic Expendable Economic Bonus',
+      rarity: 'rare',
       type: 'item',
       probability: 0.02 * 4,
       items: [
@@ -71,19 +75,25 @@ export const SantasMegaGiftContainer2026: Container = {
     {
       probability: 0.01,
       name: 'Ship (great)',
+      rarity: 'legendary',
       type: 'ship',
+      compensation: { name: 'Steel', amount: 1250 },
       items: GreatShips2026
     },
     {
       probability: 0.03,
       name: 'Ship (good)',
+      rarity: 'epic',
       type: 'ship',
+      compensation: { name: 'Steel', amount: 1250 },
       items: GoodShips2026
     },
     {
       probability: 0.12,
       name: 'Ship (okay)',
+      rarity: 'rare',
       type: 'ship',
+      compensation: { name: 'Steel', amount: 1250 },
       items: OkayShips2026
     }
   ]
