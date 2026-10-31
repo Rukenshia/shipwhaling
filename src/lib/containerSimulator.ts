@@ -34,6 +34,8 @@ export interface SimulatorState {
   counts: Record<string, number>;
   ships: Item[];
   loot: Loot;
+  /** Drop table of the last roll, reused until the container or owned ships change */
+  dropsCache?: { container: Container; ownedSize: number; drops: WeightedDrop[] };
 }
 
 interface WeightedDrop {
@@ -70,6 +72,9 @@ export function isShipDrop(drop: ItemDrop): boolean {
  * Drop table adjusted for the player's port: owned ships are removed from the pools, and once a
  * drop marked with conditionalProbability 0 runs out of ships, every drop with a conditional
  * probability switches to it (e.g. Golden Ships replacing the regular Golden Gift ships).
+ *
+ * A ship group you own completely hands its chance to the groups that still have ships, in
+ * proportion to their own chances. Compensation is only given once every ship group is exhausted.
  */
 export function effectiveDrops(container: Container, owned: Set<string>): WeightedDrop[] {
   const pools = container.drops.map((drop) => ({
@@ -84,7 +89,7 @@ export function effectiveDrops(container: Container, owned: Set<string>): Weight
     ({ drop, items }) => drop.conditionalProbability === 0 && items.length === 0
   );
 
-  return pools.map(({ drop, items }) => ({
+  const weighted = pools.map(({ drop, items }) => ({
     drop,
     items,
     probability:
@@ -92,6 +97,24 @@ export function effectiveDrops(container: Container, owned: Set<string>): Weight
         ? drop.conditionalProbability
         : drop.probability
   }));
+
+  const shipPools = weighted.filter(({ drop }) => isShipDrop(drop));
+  const available = shipPools.filter(({ items }) => items.length > 0);
+  const exhaustedChance = shipPools
+    .filter(({ items }) => items.length === 0)
+    .reduce((sum, { probability }) => sum + probability, 0);
+  const availableChance = available.reduce((sum, { probability }) => sum + probability, 0);
+
+  if (exhaustedChance > 0 && availableChance > 0) {
+    for (const pool of shipPools) {
+      pool.probability =
+        pool.items.length === 0
+          ? 0
+          : pool.probability + (exhaustedChance * pool.probability) / availableChance;
+    }
+  }
+
+  return weighted;
 }
 
 function pick<T>(entries: T[], weight: (entry: T) => number): T | undefined {
@@ -134,9 +157,21 @@ export function sortedLoot(loot: Loot): LootEntry[] {
   );
 }
 
+// Rebuilding the drop table filters every ship pool, so only do it when it can have changed.
+// `owned` only ever grows, which makes its size enough to notice new ships.
+function rollableDrops(container: Container, state: SimulatorState): WeightedDrop[] {
+  const cache = state.dropsCache;
+  if (cache?.container === container && cache.ownedSize === state.owned.size) {
+    return cache.drops;
+  }
+  const drops = effectiveDrops(container, state.owned).filter(({ probability }) => probability > 0);
+  state.dropsCache = { container, ownedSize: state.owned.size, drops };
+  return drops;
+}
+
 /** Opens one container and updates the state in place */
 export function roll(container: Container, state: SimulatorState): RollResult {
-  const drops = effectiveDrops(container, state.owned).filter(({ probability }) => probability > 0);
+  const drops = rollableDrops(container, state);
 
   const guaranteedCandidates =
     container.guaranteedDropAfter && state.pity + 1 >= container.guaranteedDropAfter

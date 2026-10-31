@@ -69,7 +69,7 @@ export const SantasMegaGiftContainer2025: Container = {
     },
     {
       probability: 0.01,
-      name: 'Ship (great)',
+      name: 'Ship – Tier X or Rare',
       type: 'ship',
       items: [
         { name: 'La Pampa', amount: 1 },
@@ -118,7 +118,7 @@ export const SantasMegaGiftContainer2025: Container = {
     },
     {
       probability: 0.03,
-      name: 'Ship (good)',
+      name: 'Ship – Tier VIII–IX',
       type: 'ship',
       items: [
         { name: 'Kozma Minin', amount: 1 },
@@ -178,7 +178,7 @@ export const SantasMegaGiftContainer2025: Container = {
     },
     {
       probability: 0.12,
-      name: 'Ship (okay)',
+      name: 'Ship – Tier V–VIII',
       type: 'ship',
       items: [
         { name: "Orion '44", amount: 1 },

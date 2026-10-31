@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Realm, restoreLogin, user } from '$lib/store';
-  import { onMount } from 'svelte';
-  import { derived, writable } from 'svelte/store';
+  import { onMount, tick } from 'svelte';
+  import { derived, get, writable } from 'svelte/store';
   import RewardOverview from '$lib/components/RewardOverview.svelte';
   import Faq from '$lib/components/FAQ.svelte';
 
@@ -86,7 +86,33 @@
       window.location.href = '/login';
       return;
     }
+
+    restoreScrollAfterLoad();
   });
+
+  // The page is rendered client-side and mostly shows "Loading" placeholders at first, so the
+  // browser restores the scroll position against a much shorter page and gets clamped to the
+  // bottom. Remember the position ourselves and reapply it once the async sections rendered.
+  const scrollStorageKey = 'shipwhaling:scroll-y';
+
+  function restoreScrollAfterLoad() {
+    const saveScroll = () => sessionStorage.setItem(scrollStorageKey, `${window.scrollY}`);
+    addEventListener('pagehide', saveScroll);
+
+    const storedY = parseFloat(sessionStorage.getItem(scrollStorageKey) ?? '');
+    sessionStorage.removeItem(scrollStorageKey);
+    if (!Number.isFinite(storedY) || storedY <= 0) return;
+
+    Promise.allSettled([
+      get(shipsInPort),
+      get(rewards),
+      get(previouslyOwnedRewards),
+      get(eventStats),
+      get(previouslyOwnedEventStats)
+    ])
+      .then(() => tick())
+      .then(() => window.scrollTo(0, storedY));
+  }
 
   function logout() {
     localStorage.removeItem('user');

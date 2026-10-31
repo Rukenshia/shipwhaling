@@ -6,6 +6,8 @@ export interface Container {
   icon: any;
   name: string;
   drops: ItemDrop[];
+  /** Name of the slot `drops` belongs to when there are additional slots (default "Slot 1") */
+  mainSlotName?: string;
   /** Each additional slot awards a separate drop on every opening. */
   additionalSlots?: { name: string; drops: ItemDrop[] }[];
 

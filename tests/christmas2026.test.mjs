@@ -188,6 +188,29 @@ test('Battle Forged guarantees New Jersey BF by opening three and awards both bo
   assert.equal(state.ships.length, 1);
 });
 
+test('Santa ship groups you own completely pass their chance on; Steel only once all are owned', () => {
+  const [great, good, okay] = gift.drops.filter((drop) => drop.type === 'ship');
+  const chanceOf = (drops, drop) => drops.find((entry) => entry.drop === drop).probability;
+  const state = simulator.createState(okay.items.map((item) => item.name));
+
+  let drops = simulator.effectiveDrops(gift, state.owned);
+  assert.equal(chanceOf(drops, okay), 0);
+  assert.ok(Math.abs(chanceOf(drops, great) - 0.005) < 1e-12);
+  assert.ok(Math.abs(chanceOf(drops, good) - 0.02) < 1e-12);
+  assert.ok(Math.abs(drops.reduce((sum, { probability }) => sum + probability, 0) - 1) < 1e-12);
+
+  // the last roll lands in the ship groups: it must give a ship, not Steel
+  const result = withRandom([0.999], () => simulator.roll(gift, state));
+  assert.ok(result.item?.ship, `expected a ship, got ${result.compensation?.name}`);
+
+  for (const drop of [great, good]) for (const item of drop.items) state.owned.add(item.name);
+  drops = simulator.effectiveDrops(gift, state.owned);
+  assert.equal(chanceOf(drops, okay), 0.02);
+  const exhausted = withRandom([0.999], () => simulator.roll(gift, state));
+  assert.equal(exhausted.item, undefined);
+  assert.deepEqual(exhausted.compensation, { name: 'Steel', amount: 250 });
+});
+
 test('Golden Gift switches to 10% rare ships, then Battle Forged compensation when all are owned', () => {
   const regular = golden.drops.find((drop) => drop.type === 'ship');
   const rare = golden.drops.find((drop) => drop.unique);

@@ -74,7 +74,7 @@ export const SantasMegaGiftContainer2026: Container = {
     },
     {
       probability: 0.01,
-      name: 'Ship (great)',
+      name: 'Ship – Tier X or Rare',
       rarity: 'legendary',
       type: 'ship',
       compensation: { name: 'Steel', amount: 1250 },
@@ -82,7 +82,7 @@ export const SantasMegaGiftContainer2026: Container = {
     },
     {
       probability: 0.03,
-      name: 'Ship (good)',
+      name: 'Ship – Tier VIII–IX',
       rarity: 'epic',
       type: 'ship',
       compensation: { name: 'Steel', amount: 1250 },
@@ -90,7 +90,7 @@ export const SantasMegaGiftContainer2026: Container = {
     },
     {
       probability: 0.12,
-      name: 'Ship (okay)',
+      name: 'Ship – Tier V–VIII',
       rarity: 'rare',
       type: 'ship',
       compensation: { name: 'Steel', amount: 1250 },

@@ -9,12 +9,14 @@ export const BattleForgedPremiumContainer2026: Container = {
   guaranteedDropType: 'ship',
 
   // Slot 2 is the main drop; slots 1 and 3 each independently award a bonus type.
+  mainSlotName: 'Slot 2',
   additionalSlots: [1, 3].map((slot) => ({
     name: `Slot ${slot}`,
     drops: [
       {
         name: `Legendary Expendable Economic Bonus (Slot ${slot})`,
         probability: 1,
+        rarity: 'legendary',
         type: 'item',
         items: [
           { name: 'Legendary Credit Boosters', amount: 3 },

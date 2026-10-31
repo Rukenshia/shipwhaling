@@ -25,11 +25,25 @@
   import battleForgedIcon from '$lib/assets/christmas2026/battle-forged-premium-container.png';
   import Box from '../Box.svelte';
   import Modal from '../Modal.svelte';
+  import CoffeeDrop from './CoffeeDrop.svelte';
+  import BonusDrop from './BonusDrop.svelte';
+  import { Realm, user } from '$lib/store';
+  import flamuuPotato from '$lib/assets/flamuu-potato.png';
+  import santaWhale from '$lib/assets/christmas.png';
 
   let { shipsInPort, containers }: { shipsInPort: Ship[]; containers: Container[] } = $props();
 
   const MAX_BULK = 100000;
   const OPEN_DURATION = 900;
+  // chance per opening action (not per container) to show the coffee easter egg; ?coffee forces it
+  const COFFEE_CHANCE = 0.008;
+  // a potato from the streamer Flamuu, who always gets one on his first opening and then a lot
+  // more often than everyone else; ?potato forces it
+  const POTATO_CHANCE = 0.005;
+  const FLAMUU_POTATO_CHANCE = 0.05;
+  // once per session, for opening a truly absurd number of containers
+  const WHALE_OPENED = 10000;
+  const GOLDEN_WHALE_OPENED = 100000;
 
   const rarityStyles: Record<
     Rarity,
@@ -73,7 +87,8 @@
   const percent = new Intl.NumberFormat('en-US', { maximumFractionDigits: 3 });
 
   // svelte-ignore state_referenced_locally
-  let selectedContainer: Container = $state(containers[0]);
+  // raw: roll() reads the drop tables in a hot loop, and deep proxies make bulk opening crawl
+  let selectedContainer: Container = $state.raw(containers[0]);
   let sim: SimulatorState = $state.raw(createSimState());
   let version = $state(0);
 
@@ -98,12 +113,40 @@
   let detailsOpen = $state(false);
   let revealPanel: HTMLElement | undefined = $state(undefined);
   let revealScroll: HTMLElement | undefined = $state(undefined);
+  let bonus = $state<{ kind: 'coffee' | 'potato' | 'whale' | 'golden-whale'; key: number }>();
+  let coffeeFound = false;
+  let potatoFound = false;
+  let whaleFound = false;
+  let goldenWhaleFound = false;
+  let bonusShown = $derived(phase === 'idle' && bonus?.key === revealKey);
+  let isFlamuu = $derived($user?.realm === Realm.EU && $user.account_id === '529265619');
+  let potatoChance = $derived(isFlamuu ? FLAMUU_POTATO_CHANCE : POTATO_CHANCE);
 
   // start every new reveal at the top of the scrollable results
   $effect(() => {
     void revealKey;
     if (revealScroll) revealScroll.scrollTop = 0;
   });
+
+  function rollBonus() {
+    const params = new URLSearchParams(window.location.search);
+    if (!goldenWhaleFound && sim.opened >= GOLDEN_WHALE_OPENED) {
+      // one bulk open can cross both thresholds; the golden one wins
+      goldenWhaleFound = true;
+      whaleFound = true;
+      bonus = { kind: 'golden-whale', key: revealKey };
+    } else if (!whaleFound && sim.opened >= WHALE_OPENED) {
+      whaleFound = true;
+      bonus = { kind: 'whale', key: revealKey };
+    } else if (params.has('potato') || (isFlamuu && !potatoFound) || Math.random() < potatoChance) {
+      potatoFound = true;
+      bonus = { kind: 'potato', key: revealKey };
+    } else if (params.has('coffee') || (!coffeeFound && Math.random() < COFFEE_CHANCE)) {
+      // at most once per page load so it stays a surprise
+      coffeeFound = true;
+      bonus = { kind: 'coffee', key: revealKey };
+    }
+  }
 
   function createSimState() {
     return createState(shipsInPort.map((ship) => ship.name));
@@ -115,13 +158,37 @@
 
   // Everything below reads `version` so it recalculates after sim is mutated
   let drops = $derived(version >= 0 ? effectiveDrops(selectedContainer, sim.owned) : []);
-  let rateDrops = $derived([
-    ...drops,
-    ...(selectedContainer.additionalSlots ?? []).flatMap((slot) =>
-      slot.drops.map((drop) => ({ drop, probability: drop.probability, items: drop.items }))
-    )
-  ]);
-  let maxProbability = $derived(Math.max(...rateDrops.map(({ probability }) => probability)));
+  let multiSlot = $derived(!!selectedContainer.additionalSlots?.length);
+  // Every slot rolls independently, so each one gets its own group (and bar scale) in slot order
+  let rateSlots = $derived(
+    [
+      { name: selectedContainer.mainSlotName ?? 'Slot 1', drops },
+      ...(selectedContainer.additionalSlots ?? []).map((slot) => ({
+        name: slot.name,
+        drops: slot.drops.map((drop) => ({
+          drop,
+          probability: drop.probability,
+          items: drop.items
+        }))
+      }))
+    ]
+      .sort(bySlotName)
+      .map((slot) => ({
+        ...slot,
+        maxProbability: Math.max(...slot.drops.map(({ probability }) => probability))
+      }))
+  );
+  let slotResults = $derived.by(() => {
+    const result: RollResult | undefined = lastResult;
+    if (!result) return [];
+    return [
+      { name: selectedContainer.mainSlotName ?? 'Slot 1', result },
+      ...(result.additionalRewards ?? []).map((extra, i) => ({
+        name: selectedContainer.additionalSlots?.[i]?.name ?? `Slot ${i + 2}`,
+        result: extra
+      }))
+    ].sort(bySlotName);
+  });
   let stats = $derived.by(() => {
     void version;
     return {
@@ -155,6 +222,8 @@
 
   function reset() {
     sim = createSimState();
+    whaleFound = false;
+    goldenWhaleFound = false;
     lastResult = undefined;
     lastBatch = undefined;
     showAllShips = false;
@@ -170,6 +239,7 @@
     const reveal = () => {
       lastResult = result;
       revealKey++;
+      rollBonus();
       showReveal();
       phase = 'idle';
       refresh();
@@ -214,6 +284,7 @@
       expectedShips: amount * shipDrops.reduce((sum, { probability }) => sum + probability, 0)
     };
     revealKey++;
+    rollBonus();
     refresh();
     showReveal();
   }
@@ -259,6 +330,15 @@
     return name.replace(/^1x\s+/i, '');
   }
 
+  function bySlotName(a: { name: string }, b: { name: string }) {
+    return a.name.localeCompare(b.name, undefined, { numeric: true });
+  }
+
+  // Drop names carry a "(Slot N)" suffix to stay unique; the slot is shown separately
+  function dropName(drop: ItemDrop): string {
+    return drop.name.replace(/\s*\(Slot \d+\)$/, '');
+  }
+
   function sortedItems(drop: ItemDrop): Item[] {
     return [...drop.items].sort(
       (a, b) => (b.ship?.tier ?? 0) - (a.ship?.tier ?? 0) || a.name.localeCompare(b.name)
@@ -299,6 +379,97 @@
   </ul>
 {/snippet}
 
+{#snippet rateRow(drop: ItemDrop, probability: number, items: Item[], maxProbability: number)}
+  {@const rarity = rarityStyles[dropRarity(drop)]}
+  {@const isShipDrop = drop.type === 'ship' || drop.unique}
+  {@const exhausted = isShipDrop && items.length === 0}
+  <button
+    onclick={() => showDetails(drop)}
+    class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 bg-slate-950/30 py-2 pl-2 pr-3 text-left outline outline-1 -outline-offset-1 outline-white/10 backdrop-blur transition-colors hover:bg-slate-800/60"
+  >
+    <span class="h-8 w-1 {rarity.bar}" aria-hidden="true"></span>
+    <span class="min-w-0">
+      <span class="flex items-baseline gap-2">
+        <span class="truncate text-sm text-white">{dropName(drop)}</span>
+        {#if exhausted}
+          <span class="shrink-0 text-xs text-gray-400">all owned</span>
+        {:else if isShipDrop}
+          <span class="shrink-0 text-xs text-gray-400">{items.length} ships</span>
+        {/if}
+      </span>
+      <span class="mt-1.5 block h-1 bg-white/10" aria-hidden="true">
+        <span
+          class="block h-full {rarity.bar} transition-all"
+          style="width: {probability > 0
+            ? Math.max(2, Math.sqrt(probability / maxProbability) * 100)
+            : 0}%"
+        ></span>
+      </span>
+    </span>
+    <span class="text-right font-sans">
+      <span class="block text-sm font-medium text-white">{percent.format(probability * 100)}%</span>
+      <span class="block text-xs {stats.counts[drop.name] ? rarity.text : 'text-gray-500'}">
+        {prettyAmount(stats.counts[drop.name] ?? 0)}× received
+      </span>
+    </span>
+  </button>
+{/snippet}
+
+{#snippet rewardTitle(result: RollResult)}
+  {@const reward = result.item ?? result.compensation}
+  {#if reward}
+    {#if reward.ship}
+      <span class="text-amber-200">{tiers[reward.ship.tier - 1]}</span>
+    {:else if reward.amount > 1}
+      {prettyAmount(reward.amount)}
+    {/if}
+    {lootName(reward.name)}
+  {:else}
+    Compensation
+  {/if}
+{/snippet}
+
+{#snippet rewardSource(result: RollResult)}
+  {result.item
+    ? dropName(result.drop)
+    : `${dropName(result.drop)}: you already own every ship in it`}
+{/snippet}
+
+<!-- compact reveal card for containers that award one reward per slot -->
+{#snippet slotCard(slotName: string, result: RollResult, index: number)}
+  {@const rarity = rarityStyles[dropRarity(result.drop)]}
+  {@const icon = itemIcon(result.item ?? result.compensation)}
+  <div
+    in:scale={{ start: 0.7, duration: 400, delay: index * 180, easing: backOut }}
+    class="flex min-h-0 flex-1 items-center gap-3 px-3 py-3 text-left outline sm:gap-4 sm:px-4 outline-2 -outline-offset-2 {rarity.outline} {rarity.bg}"
+  >
+    <!-- smaller icon on narrow screens so the text keeps its room -->
+    <div class="flex h-10 w-12 shrink-0 items-center justify-center sm:h-14 sm:w-20">
+      {#if icon}
+        <img
+          src={icon}
+          alt=""
+          class="max-h-full max-w-full object-contain {result.item?.ship
+            ? ''
+            : 'h-9 w-9 sm:h-12 sm:w-12'}"
+        />
+      {:else}
+        {@render giftGlyph(`h-8 w-8 sm:h-11 sm:w-11 ${rarity.text}`)}
+      {/if}
+    </div>
+    <div class="min-w-0">
+      <div class="header text-xs font-semibold uppercase tracking-widest {rarity.text}">
+        {slotName} · {rarity.label}
+        {#if result.guaranteed}· Guaranteed{/if}
+      </div>
+      <div class="mt-0.5 text-lg font-bold normal-case leading-tight text-white">
+        {@render rewardTitle(result)}
+      </div>
+      <div class="truncate text-xs normal-case text-gray-400">{@render rewardSource(result)}</div>
+    </div>
+  </div>
+{/snippet}
+
 {#snippet shipCard(item: Item, owned = false)}
   <div
     class="flex flex-col overflow-hidden bg-slate-950/50 outline outline-1 -outline-offset-1 outline-white/10"
@@ -333,6 +504,34 @@
     </div>
     <div class="truncate px-2 py-1.5 text-xs text-white" title={item.name}>{item.name}</div>
   </div>
+{/snippet}
+
+{#snippet bonusDrop()}
+  {#if bonusShown && bonus?.kind === 'potato'}
+    <BonusDrop
+      icon={flamuuPotato}
+      label={`Mythic · ${potatoChance * 100}%`}
+      title="1 Angry Captain Potato"
+      subtitle="i am poteto. (this is not a real reward, just an easter egg)"
+    />
+  {:else if bonusShown && bonus?.kind === 'whale'}
+    <BonusDrop
+      icon={santaWhale}
+      label={`${prettyAmount(WHALE_OPENED)} opened`}
+      title="1 Whale (it's you)"
+      subtitle={`You opened over ${prettyAmount(WHALE_OPENED)} containers this session`}
+    />
+  {:else if bonusShown && bonus?.kind === 'golden-whale'}
+    <BonusDrop
+      icon={santaWhale}
+      iconClass="golden"
+      label={`${prettyAmount(GOLDEN_WHALE_OPENED)} opened`}
+      title="1 Golden Whale (still you)"
+      subtitle={`You opened over ${prettyAmount(GOLDEN_WHALE_OPENED)} containers this session`}
+    />
+  {:else if bonusShown}
+    <CoffeeDrop chance={COFFEE_CHANCE} />
+  {/if}
 {/snippet}
 
 <div class="flex flex-col gap-6">
@@ -446,6 +645,7 @@
                 <span class="header animate-pulse uppercase tracking-widest">Unwrapping…</span>
               </div>
             {:else if lastBatch}
+              {@render bonusDrop()}
               {#key revealKey}
                 <div in:scale={{ start: 0.9, duration: 250 }} class="flex flex-col gap-4">
                   {#if lastBatch.ships.length}
@@ -484,6 +684,15 @@
                   {/if}
                 </div>
               {/key}
+            {:else if lastResult && multiSlot}
+              {#key revealKey}
+                <div class="flex flex-1 flex-col {bonusShown ? 'gap-2' : 'gap-3'}">
+                  {#each slotResults as { name, result }, index (name)}
+                    {@render slotCard(name, result, index)}
+                  {/each}
+                  {@render bonusDrop()}
+                </div>
+              {/key}
             {:else if lastResult}
               {@const rarity = rarityStyles[dropRarity(lastResult.drop)]}
               {@const reward = lastResult.item ?? lastResult.compensation}
@@ -493,17 +702,23 @@
                   in:scale={{ start: 0.6, duration: 450, easing: backOut }}
                   class="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center outline outline-2 -outline-offset-2 {rarity.outline} {rarity.bg} {rarity.glow}"
                 >
-                  <div class="flex h-28 w-full items-center justify-center">
+                  <div
+                    class="flex w-full items-center justify-center {bonusShown ? 'h-16' : 'h-28'}"
+                  >
                     {#if icon}
                       <img
                         src={icon}
                         alt=""
                         class="max-h-full max-w-full object-contain {lastResult.item?.ship
                           ? ''
-                          : 'h-20 w-20'}"
+                          : bonusShown
+                            ? 'h-14 w-14'
+                            : 'h-20 w-20'}"
                       />
                     {:else}
-                      {@render giftGlyph(`h-20 w-20 ${rarity.text}`)}
+                      {@render giftGlyph(
+                        `${bonusShown ? 'h-14 w-14' : 'h-20 w-20'} ${rarity.text}`
+                      )}
                     {/if}
                   </div>
                   <div>
@@ -514,37 +729,15 @@
                       {#if lastResult.guaranteed}· Guaranteed{/if}
                     </div>
                     <div class="mt-1 text-2xl font-bold normal-case text-white">
-                      {#if reward}
-                        {#if reward.ship}
-                          <span class="text-amber-200">{tiers[reward.ship.tier - 1]}</span>
-                        {:else if reward.amount > 1}
-                          {prettyAmount(reward.amount)}
-                        {/if}
-                        {lootName(reward.name)}
-                      {:else}
-                        Compensation
-                      {/if}
+                      {@render rewardTitle(lastResult)}
                     </div>
                     <div class="mt-1 text-sm normal-case text-gray-400">
-                      {lastResult.item
-                        ? lastResult.drop.name
-                        : `${lastResult.drop.name}: you already own every ship in it`}
+                      {@render rewardSource(lastResult)}
                     </div>
                   </div>
                 </div>
-                {#if lastResult.additionalRewards?.length}
-                  <div class="flex flex-col gap-2 text-sm normal-case text-cyan-100">
-                    <div class="header text-xs uppercase tracking-wide text-gray-400">
-                      Additional slots
-                    </div>
-                    {#each lastResult.additionalRewards as extra}
-                      {#if extra.item}
-                        <div>{prettyAmount(extra.item.amount)}× {extra.item.name}</div>
-                      {/if}
-                    {/each}
-                  </div>
-                {/if}
               {/key}
+              {@render bonusDrop()}
             {:else}
               <div
                 class="flex flex-1 flex-col items-center justify-center gap-3 border border-dashed border-white/15 p-6 text-center"
@@ -643,56 +836,34 @@
     {#if openPanel}
       <div id="simulator-details" transition:slide={{ duration: 200 }}>
         {#if openPanel === 'rates'}
-          {#if selectedContainer.additionalSlots?.length}
-            <p class="mb-2 text-sm normal-case text-cyan-100/80">
-              Every container awards one reward from each of its three independent slots. Bonus
-              types within an economic-bonus drop are equally likely.
+          {#if multiSlot}
+            <p class="mb-3 text-sm normal-case text-cyan-100/80">
+              Every opening gives one reward from each of the {rateSlots.length} slots below. Each slot
+              rolls on its own.
             </p>
           {/if}
-          <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
-            {#each rateDrops as { drop, probability, items } (drop.name)}
-              {@const rarity = rarityStyles[dropRarity(drop)]}
-              {@const isShipDrop = drop.type === 'ship' || drop.unique}
-              {@const exhausted = isShipDrop && items.length === 0}
-              <button
-                onclick={() => showDetails(drop)}
-                class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 bg-slate-950/30 py-2 pl-2 pr-3 text-left outline outline-1 -outline-offset-1 outline-white/10 backdrop-blur transition-colors hover:bg-slate-800/60"
-              >
-                <span class="h-8 w-1 {rarity.bar}" aria-hidden="true"></span>
-                <span class="min-w-0">
-                  <span class="flex items-baseline gap-2">
-                    <span class="truncate text-sm text-white">{drop.name}</span>
-                    {#if exhausted}
-                      <span class="shrink-0 text-xs text-gray-400">all owned</span>
-                    {:else if isShipDrop}
-                      <span class="shrink-0 text-xs text-gray-400">{items.length} ships</span>
-                    {/if}
-                  </span>
-                  <span class="mt-1.5 block h-1 bg-white/10" aria-hidden="true">
-                    <span
-                      class="block h-full {rarity.bar} transition-all"
-                      style="width: {probability > 0
-                        ? Math.max(2, Math.sqrt(probability / maxProbability) * 100)
-                        : 0}%"
-                    ></span>
-                  </span>
-                </span>
-                <span class="text-right font-sans">
-                  <span class="block text-sm font-medium text-white"
-                    >{percent.format(probability * 100)}%</span
+          <div class="flex flex-col gap-4">
+            {#each rateSlots as slot (slot.name)}
+              <section class="flex flex-col gap-2">
+                {#if multiSlot}
+                  <h4
+                    class="header flex items-center gap-3 text-xs font-semibold uppercase tracking-widest text-cyan-300"
                   >
-                  <span
-                    class="block text-xs {stats.counts[drop.name] ? rarity.text : 'text-gray-500'}"
-                  >
-                    {prettyAmount(stats.counts[drop.name] ?? 0)}× received
-                  </span>
-                </span>
-              </button>
+                    {slot.name}
+                    <span class="h-px flex-1 bg-cyan-200/20" aria-hidden="true"></span>
+                  </h4>
+                {/if}
+                <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
+                  {#each slot.drops as { drop, probability, items } (drop.name)}
+                    {@render rateRow(drop, probability, items, slot.maxProbability)}
+                  {/each}
+                </div>
+              </section>
             {/each}
           </div>
           <p class="mt-2 text-xs normal-case text-gray-400">
             Select a drop to see every possible reward. Ships you receive are removed from later
-            rolls, just like in game.
+            rolls automatically.
           </p>
         {:else if openPanel === 'loot'}
           {#if stats.loot.length}
@@ -732,9 +903,19 @@
 
 <Modal bind:open={detailsOpen}>
   {#if detailsDrop}
-    <h2 class="header mb-2 text-2xl font-bold">{detailsDrop.name}</h2>
+    <h2 class="header mb-2 text-2xl font-bold">{dropName(detailsDrop)}</h2>
     {#if detailsDrop.condition}
       <p class="mb-4 text-cyan-300">{detailsDrop.condition}</p>
+    {/if}
+    {#if detailsDrop.items.length > 1}
+      <p class="mb-3 text-sm normal-case text-gray-300">
+        {#if detailsDrop.type === 'ship' || detailsDrop.unique}
+          You receive <strong class="text-white">one</strong> of these ships. Ships you already own are
+          skipped.
+        {:else}
+          You receive <strong class="text-white">one</strong> of these.
+        {/if}
+      </p>
     {/if}
     {#if detailsDrop.items.some((item) => item.ship)}
       <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">

@@ -17,6 +17,7 @@ export const SantasUltraGiftContainer2026: Container = {
         {
           name: 'Epic Expendable Economic Bonus (Slot 2)',
           probability: 1,
+          rarity: 'epic',
           type: 'item',
           items: [
             { name: 'Epic Credit Boosters', amount: 6 },
@@ -82,7 +83,7 @@ export const SantasUltraGiftContainer2026: Container = {
     },
     {
       probability: 0.03,
-      name: 'Ship (great)',
+      name: 'Ship – Tier X or Rare',
       rarity: 'legendary',
       type: 'ship',
       compensation: { name: 'Steel', amount: 1250 },
@@ -90,7 +91,7 @@ export const SantasUltraGiftContainer2026: Container = {
     },
     {
       probability: 0.09,
-      name: 'Ship (good)',
+      name: 'Ship – Tier VIII–IX',
       rarity: 'epic',
       type: 'ship',
       compensation: { name: 'Steel', amount: 1250 },
@@ -98,7 +99,7 @@ export const SantasUltraGiftContainer2026: Container = {
     },
     {
       probability: 0.2,
-      name: 'Ship (okay)',
+      name: 'Ship – Tier V–VIII',
       rarity: 'rare',
       type: 'ship',
       compensation: { name: 'Steel', amount: 1250 },

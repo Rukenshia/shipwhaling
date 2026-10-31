@@ -76,7 +76,11 @@
       <div class="text-cyan-500 mb-4">{drop.condition}</div>
     {/if}
 
-    You can get the following {drop.type}s:
+    {#if drop.items.length > 1}
+      You get <strong>one</strong> of the following {drop.type}s:
+    {:else}
+      You can get the following {drop.type}:
+    {/if}
 
     <ul class="list-disc list-inside">
       {#each drop.items as item}
@@ -96,7 +100,7 @@
 
 <Modal bind:open={modalOpen}>
   <h2 class="text-2xl font-bold mb-4 header">{drop.name}</h2>
-  
+
   {#if drop.condition}
     <div class="text-cyan-500 mb-4 text-lg">{drop.condition}</div>
   {/if}
@@ -112,7 +116,13 @@
   </div>
 
   <div>
-    <div class="text-gray-400 mb-2">You can get the following {drop.type}s:</div>
+    <div class="text-gray-400 mb-2">
+      {#if drop.items.length > 1}
+        You get <strong class="text-white">one</strong> of the following {drop.type}s:
+      {:else}
+        You can get the following {drop.type}:
+      {/if}
+    </div>
     <ul class="list-disc list-inside space-y-1 text-base">
       {#each drop.items as item}
         <li>
