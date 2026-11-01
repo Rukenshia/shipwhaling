@@ -48,8 +48,8 @@
   {#if previous.total > 0}
     <Tooltip>
       {#snippet tooltip()}
-        You could earn these by re-buying ships you had in your port before. Pick which ones count
-        in the Breakdown section below.
+        You could earn these by re-buying ships you had in your port before. For more info, check
+        out the Breakdown.
       {/snippet}
       <span class="cursor-help text-emerald-400">
         +{prettyAmount(previous.total)} from {ships(previous.ships)} previously owned

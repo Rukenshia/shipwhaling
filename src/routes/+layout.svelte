@@ -73,6 +73,34 @@
 </script>
 
 <div class="w-full min-h-screen relative flex flex-col">
+  <a
+    href="https://convoy.in.fkn.space"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="group relative z-20 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5 border-b border-amber-200/25 bg-cyan-950/85 px-4 py-2.5 text-center backdrop-blur-sm transition hover:border-amber-200/50 hover:bg-cyan-900/85 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-amber-300"
+  >
+    <span class="header text-xs font-medium uppercase tracking-wider text-cyan-100/85 sm:text-sm">
+      <svg
+        viewBox="0 0 22 12"
+        aria-hidden="true"
+        class="pennant mr-1.5 inline-block h-3 w-auto -translate-y-px drop-shadow"
+      >
+        <path d="M0 0 L22 6 L0 12 Z" fill="#fcd34d" />
+        <path d="M0 0 L11 3 L11 9 L0 12 Z" fill="#f59e0b" />
+      </svg>
+      Looking to plan your
+      <span class="text-amber-300">Holiday&nbsp;Convoy</span> rewards?
+      <span
+        class="font-bold text-white underline decoration-amber-300/50 decoration-2 underline-offset-4 transition group-hover:decoration-amber-300"
+      >
+        Check out the Holiday Convoy Planner
+      </span>
+      <span aria-hidden="true" class="inline-block transition-transform group-hover:translate-x-1">
+        →
+      </span>
+    </span>
+  </a>
+
   <div class="fixed inset-0 z-0">
     <div id="wallpaper" class="absolute inset-0 bg-cover bg-bottom"></div>
     <div class="absolute inset-0 bg-cyan-950 opacity-50"></div>

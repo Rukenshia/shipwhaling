@@ -2,7 +2,13 @@
   import { tick } from 'svelte';
   import { scale, slide } from 'svelte/transition';
   import { backOut } from 'svelte/easing';
-  import type { Container, Item, ItemDrop, Rarity } from '$lib/container';
+  import {
+    normalizeShipName,
+    type Container,
+    type Item,
+    type ItemDrop,
+    type Rarity
+  } from '$lib/container';
   import {
     addLoot,
     createState,
@@ -31,7 +37,17 @@
   import flamuuPotato from '$lib/assets/flamuu-potato.png';
   import santaWhale from '$lib/assets/christmas.png';
 
-  let { shipsInPort, containers }: { shipsInPort: Ship[]; containers: Container[] } = $props();
+  interface PlannedShips {
+    /** Ships the player can get outside of containers, e.g. from the Holiday Convoy shop */
+    items: Item[];
+    storageKey: string;
+  }
+
+  let {
+    shipsInPort,
+    containers,
+    plannedShips
+  }: { shipsInPort: Ship[]; containers: Container[]; plannedShips?: PlannedShips } = $props();
 
   const MAX_BULK = 100000;
   const OPEN_DURATION = 900;
@@ -86,6 +102,8 @@
   const tiers = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', '★'];
   const percent = new Intl.NumberFormat('en-US', { maximumFractionDigits: 3 });
 
+  // svelte-ignore state_referenced_locally
+  let planned: Set<string> = $state.raw(loadPlanned(plannedShips?.storageKey));
   // svelte-ignore state_referenced_locally
   // raw: roll() reads the drop tables in a hot loop, and deep proxies make bulk opening crawl
   let selectedContainer: Container = $state.raw(containers[0]);
@@ -149,7 +167,37 @@
   }
 
   function createSimState() {
-    return createState(shipsInPort.map((ship) => ship.name));
+    return createState([...shipsInPort.map((ship) => ship.name), ...planned]);
+  }
+
+  function loadPlanned(storageKey: string | undefined): Set<string> {
+    if (!storageKey || typeof localStorage === 'undefined') return new Set();
+    try {
+      const names: unknown = JSON.parse(localStorage.getItem(storageKey) ?? '[]');
+      return new Set(Array.isArray(names) ? names.filter((n) => typeof n === 'string') : []);
+    } catch {
+      return new Set();
+    }
+  }
+
+  function inPort(item: Item): boolean {
+    return shipsInPort.some(
+      (ship) => normalizeShipName(ship.name) === normalizeShipName(item.name)
+    );
+  }
+
+  // planned ships count as owned, so changing them starts a fresh session with the new odds
+  function togglePlanned(item: Item) {
+    if (phase === 'opening' || !plannedShips) return;
+    const next = new Set(planned);
+    if (!next.delete(item.name)) next.add(item.name);
+    planned = next;
+    try {
+      localStorage.setItem(plannedShips.storageKey, JSON.stringify([...next]));
+    } catch {
+      // the choice still applies to this visit
+    }
+    reset();
   }
 
   function refresh() {
@@ -158,6 +206,16 @@
 
   // Everything below reads `version` so it recalculates after sim is mutated
   let drops = $derived(version >= 0 ? effectiveDrops(selectedContainer, sim.owned) : []);
+  let plannedHere = $derived(
+    (plannedShips?.items ?? []).filter((item) =>
+      [
+        selectedContainer.drops,
+        ...(selectedContainer.additionalSlots ?? []).map((slot) => slot.drops)
+      ]
+        .flat()
+        .some((drop) => drop.items.includes(item))
+    )
+  );
   let multiSlot = $derived(!!selectedContainer.additionalSlots?.length);
   // Every slot rolls independently, so each one gets its own group (and bar scale) in slot order
   let rateSlots = $derived(
@@ -506,6 +564,66 @@
   </div>
 {/snippet}
 
+<!-- ships the player can buy in the Holiday Convoy instead; picked ones count as owned -->
+{#snippet convoyPicker(items: Item[])}
+  <section class="mt-3 flex flex-col gap-2" aria-labelledby="convoy-picker-title">
+    <h4
+      id="convoy-picker-title"
+      class="header flex items-center gap-3 text-xs font-semibold uppercase tracking-widest text-amber-300"
+    >
+      Holiday Convoy
+      <span class="h-px flex-1 bg-amber-200/20" aria-hidden="true"></span>
+    </h4>
+    <p class="text-xs normal-case text-gray-400">
+      Buying any of these with convoy tokens? Click to exclude them from drops.
+    </p>
+    <div class="grid grid-cols-3 gap-2">
+      {#each items as item (item.name)}
+        {@const owned = inPort(item)}
+        {@const selected = owned || planned.has(item.name)}
+        <button
+          aria-pressed={selected}
+          disabled={owned || phase === 'opening'}
+          title={owned ? `${item.name} is already in your port` : item.name}
+          onclick={() => togglePlanned(item)}
+          class="relative flex flex-col items-center gap-1 px-1 pb-1.5 pt-2 transition-colors outline outline-1 -outline-offset-1 disabled:cursor-not-allowed
+            {selected
+            ? 'bg-amber-400/10 outline-amber-300/60'
+            : 'bg-slate-950/40 outline-white/10 hover:bg-slate-800/60'}
+            {owned ? 'opacity-50' : ''}"
+        >
+          {#if selected}
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              class="absolute right-1 top-1 h-3.5 w-3.5 text-amber-300"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M16.7 5.3a1 1 0 0 1 0 1.4l-8 8a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.4L8 12.6l7.3-7.3a1 1 0 0 1 1.4 0Z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          {/if}
+          {#if item.ship?.image}
+            <img src={item.ship.image} alt="" class="h-8 w-full object-contain" />
+          {/if}
+          <span class="w-full truncate text-center text-xs normal-case text-white">{item.name}</span
+          >
+          <span
+            class="text-[0.65rem] uppercase tracking-wide {selected
+              ? 'text-amber-200'
+              : 'text-gray-500'}"
+          >
+            {owned ? 'In port' : selected ? 'Convoy' : 'Drops'}
+          </span>
+        </button>
+      {/each}
+    </div>
+  </section>
+{/snippet}
+
 {#snippet bonusDrop()}
   {#if bonusShown && bonus?.kind === 'potato'}
     <BonusDrop
@@ -565,7 +683,7 @@
 
   <!-- Stage -->
   <Box variant="dark" padding="p-0" class="overflow-hidden">
-    <div class="grid w-full lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+    <div class="grid w-full md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
       <div class="stage relative flex flex-col items-center justify-center gap-6 px-6 py-8 lg:px-8">
         <img
           src={selectedContainer.icon}
@@ -621,13 +739,17 @@
             />
             Skip opening animation
           </label>
+
+          {#if plannedHere.length}
+            {@render convoyPicker(plannedHere)}
+          {/if}
         </div>
       </div>
 
       <!-- Reveal -->
       <!-- fixed height (the stage column's height on desktop) so results scroll instead of resizing the simulator -->
       <div
-        class="relative h-[28rem] border-t border-white/10 lg:h-auto lg:border-l lg:border-t-0"
+        class="relative h-[28rem] border-t border-white/10 md:h-auto md:border-l md:border-t-0"
         aria-live="polite"
         bind:this={revealPanel}
       >
@@ -744,8 +866,7 @@
               >
                 {@render giftGlyph('h-14 w-14 text-cyan-200/40')}
                 <p class="text-sm normal-case text-gray-400">
-                  Open a container to see what Santa brings. Ships already in your port are
-                  excluded.
+                  Click on "Open Container" to see what Santa could bring.
                 </p>
               </div>
             {/if}

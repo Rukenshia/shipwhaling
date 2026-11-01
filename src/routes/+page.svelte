@@ -367,7 +367,7 @@
       Container Simulator
 
       {#snippet subtitle()}
-        <div>Simulate opening Santa's Gift containers and view drop rates</div>
+        <div>Simulate opening Santa's Gift containers and view drop rates.</div>
       {/snippet}
     </Title>
     {#await $shipsInPort}
@@ -384,10 +384,7 @@
       Breakdown
 
       {#snippet subtitle()}
-        <div>
-          Choose which previously owned ships to include in the calculations. Your exclusions are
-          saved in this browser.
-        </div>
+        <div>Choose which previously owned ships to include in the calculations.</div>
       {/snippet}
     </Title>
     {#await Promise.all([$rewards, $previouslyOwnedRewards])}

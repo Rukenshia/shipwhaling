@@ -15,6 +15,12 @@
 
   let { shipsInPort }: Props = $props();
 
+  // Holiday Convoy shop ships that also drop from the Golden Gift Container
+  const convoyShipNames = ['Latouche-Tréville', 'Rodina', 'Tōgasa'];
+  const convoyShips = GoldenContainer2026.drops
+    .flatMap((drop) => drop.items)
+    .filter((item) => convoyShipNames.includes(item.name));
+
   let readAndUnderstood = $state(false);
   let mounted = $state(false);
 
@@ -66,6 +72,7 @@
   </aside>
   <GamblingSimulator
     {shipsInPort}
+    plannedShips={{ items: convoyShips, storageKey: 'convoyShips-christmas2026' }}
     containers={[
       SantasGiftContainer2026,
       SantasMegaGiftContainer2026,
