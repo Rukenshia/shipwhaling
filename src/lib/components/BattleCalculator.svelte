@@ -95,31 +95,35 @@
 <Box variant="dark" padding="p-0" class="overflow-hidden">
   <div class="grid w-full lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
     <!-- Average Base XP Slider -->
-    <div class="flex flex-col justify-center gap-4 px-6 py-6 lg:px-8">
-      <div class="flex items-baseline justify-between gap-4">
+    <div class="flex flex-col justify-between gap-6 p-6 lg:p-8">
+      <div>
         <label
           for="baseXP"
-          class="header text-sm font-semibold uppercase tracking-widest text-cyan-300"
+          class="header text-sm font-semibold uppercase tracking-widest text-gray-200"
         >
           Average Base XP per battle
         </label>
-        <span class="font-sans text-3xl font-bold text-white">{prettyAmount(averageBaseXP)}</span>
+        <div class="font-sans text-5xl font-bold leading-tight text-white">
+          {prettyAmount(averageBaseXP)}
+        </div>
       </div>
-      <input
-        id="baseXP"
-        type="range"
-        min={minBaseXP}
-        max={maxBaseXP}
-        step="100"
-        bind:value={averageBaseXP}
-        oninput={calculateBattles}
-        style="--fill: {sliderFill}%"
-        class="slider h-2 w-full cursor-pointer appearance-none"
-      />
-      <div class="flex justify-between font-sans text-xs text-gray-400">
-        <span>{prettyAmount(minBaseXP)}</span>
-        <span>{prettyAmount((minBaseXP + maxBaseXP) / 2)}</span>
-        <span>{prettyAmount(maxBaseXP)}</span>
+      <div class="flex flex-col gap-3">
+        <input
+          id="baseXP"
+          type="range"
+          min={minBaseXP}
+          max={maxBaseXP}
+          step="100"
+          bind:value={averageBaseXP}
+          oninput={calculateBattles}
+          style="--fill: {sliderFill}%"
+          class="slider h-2 w-full cursor-pointer appearance-none"
+        />
+        <div class="flex justify-between font-sans text-xs tabular-nums text-gray-400">
+          <span>{prettyAmount(minBaseXP)}</span>
+          <span>{prettyAmount((minBaseXP + maxBaseXP) / 2)}</span>
+          <span>{prettyAmount(maxBaseXP)}</span>
+        </div>
       </div>
     </div>
 
@@ -170,23 +174,26 @@
       <div
         id="battle-calculator-rules"
         transition:slide={{ duration: 200 }}
-        class="grid gap-3 px-6 pb-6 md:grid-cols-2 lg:px-8"
+        class="grid gap-3 px-6 pb-6 pt-3 md:grid-cols-2 lg:px-8"
       >
-        <div class="flex flex-col gap-3 bg-slate-950/40 p-4">
-          <div class="flex items-baseline justify-between gap-2">
+        <div class="flex flex-col gap-4 bg-slate-950/40 p-5">
+          <div class="flex items-baseline justify-between gap-2 border-b border-white/10 pb-3">
             <span class="header font-semibold uppercase tracking-wide text-white">
               Ship rewards
             </span>
             <span class="text-xs text-gray-400">once per ship</span>
           </div>
-          <p class="text-sm text-gray-300">
+          <p class="text-sm leading-relaxed text-gray-300">
             Earn enough Base XP across any number of battles on a ship to get its reward.
           </p>
-          <ul class="grid grid-cols-2 gap-1 sm:grid-cols-4 md:grid-cols-2 lg:grid-cols-4">
+          <ul class="mt-auto grid grid-cols-2 gap-1.5 sm:grid-cols-4 md:grid-cols-2 lg:grid-cols-4">
             {#each [5, 6, 7, 8, 9, 10, 11] as tier}
-              <li class="flex items-center justify-between gap-2 bg-slate-900/60 px-2 py-1 text-xs">
+              <li
+                class="flex items-center justify-between gap-2 border border-white/10 bg-white/[0.07] px-2.5 py-1.5 text-xs"
+                aria-label={tier === 11 ? 'Super ship' : `Tier ${formatTier(tier)}`}
+              >
                 <span class="header font-semibold text-amber-200">{formatTier(tier)}</span>
-                <span class="font-sans text-white"
+                <span class="font-sans tabular-nums text-white"
                   >{prettyAmount(activeEvent.getBaseXPRequirement(tier))}</span
                 >
               </li>
@@ -194,8 +201,8 @@
           </ul>
         </div>
 
-        <div class="flex flex-col gap-3 bg-slate-950/40 p-4">
-          <div class="flex items-baseline justify-between gap-2">
+        <div class="flex flex-col gap-4 bg-slate-950/40 p-5">
+          <div class="flex items-baseline justify-between gap-2 border-b border-white/10 pb-3">
             <span class="header font-semibold uppercase tracking-wide text-white">
               Additional rewards
             </span>
@@ -203,7 +210,7 @@
               >every {prettyAmount(activeEvent.getAdditionalRewardXPRequirement())} Base XP</span
             >
           </div>
-          <p class="text-sm text-gray-300">
+          <p class="text-sm leading-relaxed text-gray-300">
             Earn {prettyAmount(activeEvent.getAdditionalRewardXPRequirement())} Base XP over any number
             of battles to unlock
             <span class="font-semibold text-white">{additionalRewards}</span>
