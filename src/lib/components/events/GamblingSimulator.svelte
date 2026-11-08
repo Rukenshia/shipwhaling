@@ -251,6 +251,7 @@
     void version;
     return {
       opened: sim.opened,
+      shipRolls: sim.shipRolls,
       pity: sim.pity,
       counts: { ...sim.counts },
       ships: [...sim.ships].reverse(),
@@ -893,7 +894,7 @@
         <div>
           <div class="header text-xs tracking-wide text-gray-400">Ship rate</div>
           <div class="font-sans text-xl font-bold text-white">
-            {stats.opened ? `${percent.format((stats.ships.length / stats.opened) * 100)}%` : '—'}
+            {stats.opened ? `${percent.format((stats.shipRolls / stats.opened) * 100)}%` : '—'}
           </div>
         </div>
         <div>

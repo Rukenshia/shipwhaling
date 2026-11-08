@@ -27,6 +27,8 @@ export type Loot = Record<string, LootEntry>;
 
 export interface SimulatorState {
   opened: number;
+  /** Openings that landed on a ship drop, including ones paid out as compensation */
+  shipRolls: number;
   /** Containers opened since the last guaranteed-type drop */
   pity: number;
   /** Normalized names of ships the player owns, including ones received in this session */
@@ -51,6 +53,7 @@ export function dropRarity(drop: ItemDrop): Rarity {
 export function createState(ownedShipNames: string[]): SimulatorState {
   return {
     opened: 0,
+    shipRolls: 0,
     pity: 0,
     owned: new Set(ownedShipNames.map(normalizeShipName)),
     counts: {},
@@ -186,6 +189,7 @@ export function roll(container: Container, state: SimulatorState): RollResult {
   const item = chosen.items[Math.floor(Math.random() * chosen.items.length)];
 
   state.opened++;
+  if (isShipDrop(chosen.drop)) state.shipRolls++;
   state.counts[chosen.drop.name] = (state.counts[chosen.drop.name] ?? 0) + 1;
 
   if (item && (chosen.drop.type === 'ship' || chosen.drop.unique)) {
