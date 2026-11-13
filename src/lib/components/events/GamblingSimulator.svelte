@@ -60,6 +60,15 @@
   // once per session, for opening a truly absurd number of containers
   const WHALE_OPENED = 10000;
   const GOLDEN_WHALE_OPENED = 100000;
+  const KEEP_SESSION_KEY = 'simulator-keep-session';
+
+  function loadKeepSession(): boolean {
+    try {
+      return localStorage.getItem(KEEP_SESSION_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  }
 
   const rarityStyles: Record<
     Rarity,
@@ -109,6 +118,9 @@
   let selectedContainer: Container = $state.raw(containers[0]);
   let sim: SimulatorState = $state.raw(createSimState());
   let version = $state(0);
+  let keepSession = $state(loadKeepSession());
+  // pity and per-drop counts of containers the session switched away from
+  const perContainer = new Map<Container, { pity: number; counts: Record<string, number> }>();
 
   let phase: 'idle' | 'opening' = $state('idle');
   let skipAnimation = $state(false);
@@ -275,11 +287,33 @@
 
   function selectContainer(container: Container) {
     if (phase === 'opening' || container === selectedContainer) return;
+    if (!keepSession) {
+      selectedContainer = container;
+      reset();
+      return;
+    }
+    // Ships, rewards and totals carry over, but each container type keeps its own pity counter
+    // and per-drop counts (drop names like "Coal" repeat between containers)
+    perContainer.set(selectedContainer, { pity: sim.pity, counts: sim.counts });
+    const saved = perContainer.get(container);
+    sim.pity = saved?.pity ?? 0;
+    sim.counts = saved?.counts ?? {};
     selectedContainer = container;
-    reset();
+    lastResult = undefined;
+    lastBatch = undefined;
+    refresh();
+  }
+
+  function toggleKeepSession() {
+    try {
+      localStorage.setItem(KEEP_SESSION_KEY, JSON.stringify(keepSession));
+    } catch {
+      // the choice still applies to this visit
+    }
   }
 
   function reset() {
+    perContainer.clear();
     sim = createSimState();
     whaleFound = false;
     goldenWhaleFound = false;
@@ -910,13 +944,26 @@
           </div>
         </div>
       </div>
-      <button
-        class="header border border-white/20 bg-white/10 px-4 py-2 text-xs tracking-wider text-gray-200 transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
-        disabled={stats.opened === 0 || phase === 'opening'}
-        onclick={reset}
-      >
-        Reset session
-      </button>
+      <div class="flex flex-col items-start gap-2 md:items-end">
+        <button
+          class="header border border-white/20 bg-white/10 px-4 py-2 text-xs tracking-wider text-gray-200 transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
+          disabled={stats.opened === 0 || phase === 'opening'}
+          onclick={reset}
+        >
+          Reset session
+        </button>
+        {#if containers.length > 1}
+          <label class="flex cursor-pointer items-center gap-2 text-sm normal-case text-gray-300">
+            <input
+              type="checkbox"
+              bind:checked={keepSession}
+              onchange={toggleKeepSession}
+              class="h-4 w-4 accent-cyan-400"
+            />
+            Keep session when switching containers
+          </label>
+        {/if}
+      </div>
     </div>
   </Box>
 
